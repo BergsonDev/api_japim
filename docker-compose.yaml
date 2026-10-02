@@ -1,0 +1,15 @@
+services: 
+    db:
+        image : mysql
+        container_name: database
+        environment:
+            - MYSQL_DATABASE=teste
+            - MYSQL_ROOT_PASSWORD=root
+            # - MYSQL_USER=root
+        ports:
+            - "3307:3306"
+        volumes:
+            - db_data:/var/lib/mysql
+
+volumes:
+    db_data:
