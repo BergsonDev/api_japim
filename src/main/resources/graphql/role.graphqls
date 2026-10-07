@@ -1,0 +1,11 @@
+type Role {
+    id : ID!
+    name : String!
+    initialism : String!
+    created_at : String!
+    updated_at : String
+}
+
+type Query {
+    roles : [Role]!
+}

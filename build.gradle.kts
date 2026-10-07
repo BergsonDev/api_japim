@@ -18,13 +18,21 @@ repositories {
 }
 
 dependencies {
+	// dependencies for graphql
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-graphql")
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+
+	// locale for start implementation in web
+	implementation("org.springframework.boot:spring-boot-starter-web")
+
 	runtimeOnly("com.mysql:mysql-connector-j")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-graphql-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+
+	// tests
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
