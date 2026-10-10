@@ -1,0 +1,13 @@
+package com.japim.exceptions.defaults;
+
+import org.springframework.graphql.execution.ErrorType;
+
+import com.japim.exceptions.DomainException;
+
+
+
+public class EntityDontFindException extends DomainException{
+    public EntityDontFindException(Long id, String entity){
+        super(String.format("'%s' with id '%d' was not found", entity, id), ErrorType.NOT_FOUND);
+    }
+}

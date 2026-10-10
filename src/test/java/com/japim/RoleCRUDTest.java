@@ -1,5 +1,6 @@
 package com.japim;
 
+import com.japim.models.Role;
 import com.japim.repositories.RoleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,5 +18,13 @@ public class RoleCRUDTest {
     public void teste() {
         var roles = roleRepo.findAll();
         assertThat(roles).isNotNull();
+    }
+
+    @Test
+    public void testInsert(){
+        Role testRole = new Role();
+        testRole.setName("name");
+        testRole.setInitialism("initialism");
+        roleRepo.save(testRole);
     }
 }

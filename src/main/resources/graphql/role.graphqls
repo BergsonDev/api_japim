@@ -1,11 +1,34 @@
+scalar LocalDateTime
+
 type Role {
     id : ID!
     name : String!
     initialism : String!
-    created_at : String!
-    updated_at : String
+    created_at : LocalDateTime!
+    updated_at : LocalDateTime
+    deleted_at : LocalDateTime
+}
+
+input InputRoleCreate {
+    name : String!
+    initialism : String!
+    description : String
+}
+
+input InputRoleUpdate {
+    id : ID!
+    name : String!
+    initialism : String!
+    description : String
 }
 
 type Query {
     roles : [Role]!
+    role(id : ID!) : Role
+}
+
+type Mutation {
+    createRole(input : InputRoleCreate!) : Role!
+    updateRole(input : InputRoleUpdate!) : Role!
+    deleteRole(id : ID!) : Role!
 }

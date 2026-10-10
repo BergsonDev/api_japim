@@ -34,6 +34,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+	implementation("com.graphql-java:graphql-java-extended-scalars:24.0") // Use a versão compatível com seu graphql-java
 }
 
 tasks.withType<Test> {
