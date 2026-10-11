@@ -1,0 +1,29 @@
+type Permission {
+    id : ID!
+    name : String!
+    created_at : LocalDateTime!
+    updated_at : LocalDateTime
+    deleted_at : LocalDateTime
+}
+
+input InputPermissionCreate {
+    name : String!
+    description : String
+}
+
+input InputPermissionUpdate {
+    id : ID!
+    name : String!
+    description : String
+}
+
+extend type Query {
+    permissions : [Permission]!
+    permission(id : ID!) : Permission!
+}
+
+extend type Mutation {
+    createPermission(input : InputPermissionCreate!) : Permission!
+    updatePermission(input : InputPermissionUpdate!) : Permission!
+    deletePermission(id : ID!) : Permission!
+}

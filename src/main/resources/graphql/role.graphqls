@@ -1,5 +1,3 @@
-scalar LocalDateTime
-
 type Role {
     id : ID!
     name : String!
@@ -22,12 +20,12 @@ input InputRoleUpdate {
     description : String
 }
 
-type Query {
+extend type Query {
     roles : [Role]!
     role(id : ID!) : Role
 }
 
-type Mutation {
+extend type Mutation {
     createRole(input : InputRoleCreate!) : Role!
     updateRole(input : InputRoleUpdate!) : Role!
     deleteRole(id : ID!) : Role!
