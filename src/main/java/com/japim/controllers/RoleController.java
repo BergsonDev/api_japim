@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 
 import com.japim.dtos.roles.RoleDTO;
 import com.japim.dtos.roles.RoleInputCreateDTO;
+import com.japim.dtos.roles.RoleInputPermissionDTO;
 import com.japim.dtos.roles.RoleInputUpdateDTO;
 import com.japim.services.RoleService;
 
@@ -41,4 +42,11 @@ public class RoleController {
 
     @MutationMapping
     RoleDTO deleteRole(@Argument Long id){ return this.roleService.delete(id); }
+
+    @MutationMapping
+    RoleDTO addPermission(@Argument("input") RoleInputPermissionDTO rolePermission){ return this.roleService.addPermissions(rolePermission); };
+    
+    @MutationMapping
+    RoleDTO removePermission(@Argument("input") RoleInputPermissionDTO rolePermission){ return this.roleService.removePermissions(rolePermission); };
+    
 }

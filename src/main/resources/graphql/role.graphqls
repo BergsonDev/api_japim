@@ -2,6 +2,7 @@ type Role {
     id : ID!
     name : String!
     initialism : String!
+    permissions : [Permission]!
     created_at : LocalDateTime!
     updated_at : LocalDateTime
     deleted_at : LocalDateTime
@@ -20,6 +21,11 @@ input InputRoleUpdate {
     description : String
 }
 
+input InputRolePermission {
+    id : ID!
+    permissions_id : [ID]!
+}
+
 extend type Query {
     roles : [Role]!
     role(id : ID!) : Role
@@ -29,4 +35,6 @@ extend type Mutation {
     createRole(input : InputRoleCreate!) : Role!
     updateRole(input : InputRoleUpdate!) : Role!
     deleteRole(id : ID!) : Role!
+    addPermission(input : InputRolePermission!) : Role!
+    removePermission(input : InputRolePermission!) : Role!
 }

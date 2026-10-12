@@ -1,15 +1,19 @@
 package com.japim.models;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.annotation.PreDestroy;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -25,6 +29,9 @@ public  class Permission {
     private Long id;
     private String name;
     private String description;
+
+    @ManyToMany(mappedBy = "permissions",fetch = FetchType.LAZY)
+    private Set<Role> roles = new HashSet<>();
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
     private LocalDateTime deleted_at;
@@ -42,6 +49,13 @@ public  class Permission {
         return description;
     }
 
+    public Set<Role> getRoles(){
+        return this.roles;
+    }
+
+    public void setRoles(Set<Role> roles){
+        this.roles = roles;
+    }
 
     public void setName(String name) {
         this.name = name;

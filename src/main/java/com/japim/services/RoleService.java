@@ -1,20 +1,26 @@
 package com.japim.services;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.japim.dtos.roles.RoleDTO;
 import com.japim.dtos.roles.RoleInputCreateDTO;
+import com.japim.dtos.roles.RoleInputPermissionDTO;
 import com.japim.dtos.roles.RoleInputUpdateDTO;
 import com.japim.exceptions.defaults.EntityDontFindException;
+import com.japim.models.Permission;
 import com.japim.models.Role;
+import com.japim.repositories.PermissionRepository;
 import com.japim.repositories.RoleRepository;
 
 @Service
 public class RoleService {
-    private final RoleRepository roleRepo ;
+    private final RoleRepository roleRepo;
+    private final PermissionRepository permissionRepo;
 
     private RoleDTO parseDTO(Role role){
         return new RoleDTO(
@@ -22,14 +28,16 @@ public class RoleService {
                 role.getName(),
                 role.getInitialism(),
                 role.getDescription(),
+                role.getPermissions(),
                 role.getCreated_at(),
                 role.getUpdated_at(),
                 role.getDeleted_at()
         );
     }
 
-    RoleService(RoleRepository roleRepo){
+    RoleService(RoleRepository roleRepo, PermissionRepository permissionRepo){
         this.roleRepo = roleRepo;
+        this.permissionRepo = permissionRepo;
     }
 
     @Transactional(readOnly = true)
@@ -51,7 +59,7 @@ public class RoleService {
 
         Role role_save = this.roleRepo.save(role);
 
-        return new RoleDTO(role_save.getId(), role_save.getName(), role_save.getInitialism(), role_save.getDescription(), role_save.getCreated_at(), role_save.getUpdated_at(), role_save.getDeleted_at());
+        return this.parseDTO(role_save);
     }
 
 
@@ -72,6 +80,40 @@ public class RoleService {
 
         this.roleRepo.delete(role);
 
+        return this.parseDTO(role);
+    }
+
+    @Transactional
+    public RoleDTO addPermissions(RoleInputPermissionDTO rolesInputPermissions){
+        Role role = this.roleRepo.findById(rolesInputPermissions.id()).orElseThrow(()->new EntityDontFindException(rolesInputPermissions.id(), "roles"));
+        Set<Permission> permissions =  new HashSet<Permission>();
+        rolesInputPermissions.permissions_id().forEach(id->{
+            Permission permission = this.permissionRepo.findById(id).orElseThrow(()->new EntityDontFindException(id,"permissions"));
+            permissions.add(permission);
+        });
+
+        permissions.forEach(p->{
+            role.addPermission(p);
+        });
+
+        this.roleRepo.save(role);
+        return this.parseDTO(role);
+    }
+
+    @Transactional
+    public RoleDTO removePermissions(RoleInputPermissionDTO rolesInputPermissions){
+        Role role = this.roleRepo.findById(rolesInputPermissions.id()).orElseThrow(()->new EntityDontFindException(rolesInputPermissions.id(), "roles"));
+        Set<Permission> permissions =  new HashSet<Permission>();
+        rolesInputPermissions.permissions_id().forEach(id->{
+            Permission permission = this.permissionRepo.findById(id).orElseThrow(()->new EntityDontFindException(id,"permissions"));
+            permissions.add(permission);
+        });
+
+        permissions.forEach(p->{
+            role.removePermission(p);
+        });
+
+        this.roleRepo.save(role);
         return this.parseDTO(role);
     }
 

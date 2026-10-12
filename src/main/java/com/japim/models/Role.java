@@ -1,15 +1,21 @@
 package com.japim.models;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.annotation.PreDestroy;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -26,6 +32,15 @@ public  class Role {
     private String name;
     private String initialism;
     private String description;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "role_permissions",
+        joinColumns = @JoinColumn(name = "role_id"),
+        inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> permissions = new HashSet<>();
+
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
     private LocalDateTime deleted_at;
@@ -58,7 +73,15 @@ public  class Role {
         this.description = description;
     }
 
+    public void addPermission(Permission permission){
+        this.permissions.add(permission);
+        permission.getRoles().add(this);
+    }
 
+    public void removePermission(Permission permission){
+        this.permissions.remove(permission);
+        permission.getRoles().remove(this);
+    }
     public LocalDateTime getCreated_at() {
         return this.created_at;
     }
@@ -71,6 +94,9 @@ public  class Role {
         return this.deleted_at;
     }
 
+    public Set<Permission> getPermissions(){
+        return this.permissions;
+    }
 
     // lifecicle
     @PrePersist
