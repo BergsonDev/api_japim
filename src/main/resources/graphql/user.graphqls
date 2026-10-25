@@ -1,0 +1,46 @@
+type User {
+    id : String!
+    name : String!
+    email : String!
+    password : String!
+    cpf : String!
+    ra : String!
+    role : Role!
+    is_active : Boolean!
+    path_img : String
+    created_at : LocalDateTime
+    updated_at : LocalDateTime
+    deleted_at : LocalDateTime
+}
+
+input UserInputCreate{
+    name : String! 
+    email : String!
+    password : String!
+    cpf : String!
+    ra : String!
+}
+
+input UserInputUpdate{
+    id : ID!
+    name : String! 
+    email : String!
+    password : String!
+    cpf : String!
+    ra : String!
+}
+
+extend type Query {
+    users : [User!]
+    user(id : ID!) : User!
+    
+
+}
+
+extend type Mutation{
+    createUser(input : UserInputCreate!) : User!
+    updateUser(input : UserInputUpdate!) : User!
+    delete(id : ID!) : User!
+    desativeAccount(id : ID!) : User!
+
+}

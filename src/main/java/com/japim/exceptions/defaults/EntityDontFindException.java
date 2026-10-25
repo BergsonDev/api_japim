@@ -8,6 +8,7 @@ import com.japim.exceptions.DomainException;
 
 public class EntityDontFindException extends DomainException{
     public EntityDontFindException(Long id, String entity){
-        super(String.format("'%s' with id '%d' was not found", entity, id), ErrorType.NOT_FOUND);
+        String message = id == null ? String.format("'%s' not found", entity) : String.format("'%s' with id '%d' was not found", entity, id);
+        super(message, ErrorType.NOT_FOUND);
     }
 }
