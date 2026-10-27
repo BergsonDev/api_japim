@@ -1,7 +1,6 @@
 package com.japim.models;
 
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.SQLDelete;

@@ -18,24 +18,27 @@ repositories {
 }
 
 dependencies {
-	// dependencies for graphql
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-graphql")
+	// Spring Data JPA & Web / GraphQL
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-graphql")
 
-	// locale for start implementation in web
-	implementation("org.springframework.boot:spring-boot-starter-web")
+    // Banco de Dados
+    runtimeOnly("com.mysql:mysql-connector-j")
 
-	runtimeOnly("com.mysql:mysql-connector-j")
+    // Spring Security & JWT (Ajustado e sem duplicações)
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-graphql-test")
+    // GraphQL Scalars
+    implementation("com.graphql-java:graphql-java-extended-scalars:24.0")
 
-	// tests
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-	implementation("com.graphql-java:graphql-java-extended-scalars:24.0") // Use a versão compatível com seu graphql-java
+    // Tests
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-graphql-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {

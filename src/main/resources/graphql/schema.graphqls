@@ -1,10 +1,18 @@
 scalar LocalDateTime
 
+input Login{
+    username : String!
+    password : String!
+}
+
+type Auth{
+    token_access : String!
+}
 
 type Query {
 
 }
 
 type Mutation {
-
+    login(input : Login!) : Auth!
 }

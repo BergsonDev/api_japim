@@ -2,6 +2,7 @@ package com.japim.services;
 
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class UserService {
 
     private UserRepository userRepo;
     private RoleRepository roleRepo;
+    private PasswordEncoder passwordEncoder;
 
     private UserDTO parse(User user){
         return new UserDTO(
@@ -38,9 +40,10 @@ public class UserService {
 
     }
 
-    public UserService(UserRepository userRepo, RoleRepository roleRepo){
+    public UserService(UserRepository userRepo, RoleRepository roleRepo, PasswordEncoder passwordEncoder){
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly=true)
@@ -62,7 +65,7 @@ public class UserService {
         
         user.setName(userInput.name());
         user.setEmail(userInput.email());
-        user.setPassword(userInput.password());
+        user.setPassword(passwordEncoder.encode(userInput.password()));
         user.setCpf(userInput.cpf());
         user.setRa(userInput.ra());
         user.setPath_img(userInput.path_img());
@@ -80,7 +83,7 @@ public class UserService {
         
         user.setName(userInput.name());
         user.setEmail(userInput.email());
-        user.setPassword(userInput.password());
+        // user.setPassword();
         user.setCpf(userInput.cpf());
         user.setRa(userInput.ra());
         user.setPath_img(userInput.path_img());
