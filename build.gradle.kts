@@ -44,3 +44,13 @@ dependencies {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+tasks.register<JavaExec>("seeders") {
+    group = "database"
+    description = "Executa as seeders da aplicação"
+
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.japim.ApiApplication")
+
+    args("--seeders")
+}
