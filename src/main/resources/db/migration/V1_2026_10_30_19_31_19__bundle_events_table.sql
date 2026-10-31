@@ -7,7 +7,7 @@ CREATE TABLE `bundle_events` (
   `created_at` timestamp DEFAULT (now()),
   `updated_at` timestamp DEFAULT (now()),
   `deleted_at` timestamp DEFAULT (now()),
-PRIMARY KEY (`event_id`, `bundle_id`),
+  PRIMARY KEY (`event_id`, `bundle_id`),
   FOREIGN KEY (`event_id`) REFERENCES `events` (`id`),
   FOREIGN KEY (`bundle_id`) REFERENCES `bundles` (`id`)
 );
