@@ -29,11 +29,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Desativa CSRF para API REST Stateless
+            .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sem sessão
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers( "/graphql","/graphiql").permitAll() // Rotas públicas (ex: login e graphql)
-                .anyRequest().authenticated() // Qualquer outra rota exige autenticação
+                .requestMatchers( "/graphql","/graphiql").permitAll() 
+                .anyRequest().authenticated() 
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
