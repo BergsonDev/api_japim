@@ -59,4 +59,5 @@ extend type Query{
 extend type Mutation{
     createEvent(input : EventInputCreate) : Event
     updateEvent(input : EventInputUpdate) : Event
+    deleteEvent(id : ID!) : Event
 }

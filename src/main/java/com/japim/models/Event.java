@@ -25,7 +25,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name="events")
 @SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE permissions SET deleted_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE events SET deleted_at = NOW() WHERE id = ?")
 public class Event {
     @Id 
     @GeneratedValue(strategy=GenerationType.IDENTITY)
