@@ -35,8 +35,7 @@ public class UserBasicSeeder implements InterfaceSeeder{
 
         userAdmin.setName("admin");
         userAdmin.setEmail("admin@japim.com");
-        userAdmin.setRa("0");
-        // userAdmin.setCpf("0"); //deve verificar o banco de dados
+        userAdmin.setCpf("0");
         userAdmin.setIs_active(true);
         userAdmin.setPassword(encoder.encode("japimSenhaAdmin@123Bergson!"));
         userAdmin.setRole(roleRepo.findByInitialism("ADMIN").orElseThrow(()->new EntityDontFindException(null, "roles")));

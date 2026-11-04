@@ -83,7 +83,6 @@ public class UserService {
         
         user.setName(userInput.name());
         user.setEmail(userInput.email());
-        // user.setPassword();
         user.setCpf(userInput.cpf());
         user.setRa(userInput.ra());
         user.setPath_img(userInput.path_img());

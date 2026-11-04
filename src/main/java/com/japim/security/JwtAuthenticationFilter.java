@@ -36,26 +36,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
-        // System.out.println("Cabeçalho Authorization recebido: " + authHeader); // ADICIONE ESTE LOG
-        // Se não tem cabeçalho Authorization ou não começa com "Bearer ", passa para o próximo filtro
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
         
-        System.out.println("Cabeçalho Authorization recebido: " + authHeader); // ADICIONE ESTE LOG
-        // Extrai o token removendo o prefixo "Bearer "
+        System.out.println("Cabeçalho Authorization recebido: " + authHeader);
+
         jwt = authHeader.substring(7);
         System.out.println("Teste " + jwt);
-        username = jwtService.extractUsername(jwt); // Método do seu JwtService para ler o subject/username
+        username = jwtService.extractUsername(jwt);
 
-        // Se encontrou o username e o usuário ainda não está autenticado no contexto
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.authService.loadUserByUsername(username);
 
-            // Valida o token
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                System.out.println("SUCESSO: Token válido! Setando usuário no SecurityContext: " + username);
+                // System.out.println("SUCESSO: Token válido! Setando usuário no SecurityContext: " + username);
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -63,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Define o usuário como autenticado no contexto do Spring Security
+
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
