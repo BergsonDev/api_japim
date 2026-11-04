@@ -72,7 +72,6 @@ tasks.register("migration") {
     description = "Cria um novo arquivo de migration do Flyway com timestamp"
     
     doLast {
-        // Pega o valor da flag e valida se foi realmente preenchido
         val migrationName = project.findProperty("migration")?.toString()?.trim()
         val versionMigration = project.findProperty("vsMigration")?.toString()?.trim()
 
@@ -93,4 +92,15 @@ tasks.register("migration") {
         
         println("Migration criada com sucesso: ${newFile.absolutePath}")
     }
+}
+
+
+tasks.register<JavaExec>("setupDatabase") {
+    group = "database"
+    description = "Limpa, recria, roda as migrations (Flyway) e popula o banco de dados"
+
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.japim.ApiApplication")
+
+    args("--setupDatabase")
 }

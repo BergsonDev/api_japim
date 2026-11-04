@@ -1,4 +1,4 @@
-package com.japim.seeders;
+package com.japim.command;
 
 import java.util.List;
 
@@ -6,6 +6,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import com.japim.seeders.InterfaceSeeder;
 @Component 
 public class DatabaseSeeder implements ApplicationRunner {
     private List<InterfaceSeeder> seeders;
