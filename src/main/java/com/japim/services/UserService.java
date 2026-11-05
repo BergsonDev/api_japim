@@ -57,6 +57,10 @@ public class UserService {
         return this.parse(user);
     }
 
+    public List<UserDTO> findAllById(Long[] ids){
+        return this.userRepo.findAllById(List.of(ids)).stream().map(this::parse).toList();
+    }
+
 
     @Transactional
     public UserDTO create(UserInputDTO userInput){

@@ -12,12 +12,17 @@ import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
 import com.japim.exceptions.defaults.EntityDontFindException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
+import com.japim.exceptions.events.NullableSpeakersInputException;
 import com.japim.models.Event;
+import com.japim.models.User;
 import com.japim.repositories.EventRepository;
+import com.japim.repositories.UserRepository;
 import com.japim.security.AuthSecurity;
+
 @Service
 public class EventService {
     private final EventRepository eventRepo;
+    private final UserRepository userRepo;
 
     private EventDTO parse(Event event){
         return new EventDTO(
@@ -37,13 +42,15 @@ public class EventService {
             event.getWorkload(),
             event.getCreated_by(),
             event.getConfirmed_by(),
+            event.getSpeakers(),
             event.getCreated_at(),
             event.getUpdated_at(),
             event.getDeleted_at()
         );
     }
 
-    public EventService(EventRepository eventRepo) {
+    public EventService(EventRepository eventRepo, UserRepository userRepo){
+        this.userRepo = userRepo;   
         this.eventRepo = eventRepo;
     }
 
@@ -63,10 +70,20 @@ public class EventService {
         AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
         boolean is_confirmed = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(authName -> authName.equals("events-confirm"));
 
+        if (eventInput.speakers_id().size() <= 0 ) {
+            throw new NullableSpeakersInputException();
+        }
+
         if (eventInput.is_payment() == true && eventInput.value() <= 0) {
             throw new IsPaymentDontValueException();
         }
         
+        List<User> speakers = userRepo.findAllById(eventInput.speakers_id()).stream().toList();
+
+        if(speakers.size() != eventInput.speakers_id().size()){
+            throw new EntityDontFindException(null, "users");
+        }
+
         Event event = new Event();
         event.setName(eventInput.name());
         event.setShort_description(eventInput.short_description());
@@ -81,6 +98,7 @@ public class EventService {
         event.setHour_end(eventInput.hour_end());
         event.setWorkload(eventInput.workload());
         event.setCreated_by(authSecurity.getUserEntity());
+        event.setSpeakers(speakers);
 
         if(is_confirmed){
             event.setConfirmed_by(authSecurity.getUserEntity());
@@ -98,12 +116,21 @@ public class EventService {
         if (eventInput.is_payment() && eventInput.value() <= 0) {
             throw new IsPaymentDontValueException();
         }
+
+        if(eventInput.speakers_id().size() <= 0){
+            throw new NullableSpeakersInputException();
+        }
         
+        List<User> speakers = userRepo.findAllById(eventInput.speakers_id()).stream().toList();
+
+        if(speakers.size() != eventInput.speakers_id().size()){
+            throw new EntityDontFindException(null, "users");
+        }
+
         Event event = eventRepo.findById(eventInput.id()).orElseThrow(() -> new EntityDontFindException(eventInput.id(), "events"));
         event.setName(eventInput.name());
         event.setShort_description(eventInput.short_description());
         event.setDescription(eventInput.short_description());
-
         event.setIs_payment(eventInput.is_payment());
         event.setValue((int) eventInput.value() * 100);
         event.setMax_participants(eventInput.max_participants());
@@ -113,6 +140,7 @@ public class EventService {
         event.setDate_end(eventInput.date_end());
         event.setHour_end(eventInput.hour_end());
         event.setWorkload(eventInput.workload());
+        event.setSpeakers(speakers);
 
         eventRepo.save(event);
 

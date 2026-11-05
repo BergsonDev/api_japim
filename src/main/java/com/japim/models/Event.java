@@ -5,6 +5,7 @@ package com.japim.models;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -15,11 +16,13 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-
 
 
 @Entity
@@ -44,6 +47,14 @@ public class Event {
     private LocalDate date_end;
     private LocalTime hour_end;
     private int workload;
+
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(
+        name = "event_speakers",
+        joinColumns = @JoinColumn(name = "event_id"),
+        inverseJoinColumns = @JoinColumn(name = "speaker_id")
+    )
+    private List<User> speakers;
 
     @OneToOne(fetch=FetchType.LAZY)
     private User created_by;
@@ -178,6 +189,30 @@ public class Event {
 
     public void setConfirmed_by(User confirmed_by) {
         this.confirmed_by = confirmed_by;
+    }
+
+    public List<User> getSpeakers() {
+        return speakers;
+    }
+
+    public void addSpeakers(User speaker) {
+        this.speakers.add(speaker);
+    }
+
+    public void addSpeakers(List<User> speakers) {
+        this.speakers.addAll(speakers);
+    }
+
+    public void removeSpeakers(List<User> speakers) {
+        this.speakers.removeAll(speakers);
+    }
+
+    public void removeSpeaker(User speaker) {
+        this.speakers.remove(speaker);
+    }
+
+    public void setSpeakers(List<User> speakers) {
+        this.speakers = speakers;
     }
 
     public LocalDateTime getCreated_at() {
