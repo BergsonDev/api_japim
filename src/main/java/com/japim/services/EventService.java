@@ -10,8 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.japim.dtos.events.EventDTO;
 import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
+import com.japim.dtos.events.EventParticipantDTO;
+import com.japim.exceptions.FunctionalityIsCommingException;
 import com.japim.exceptions.defaults.EntityDontFindException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
+import com.japim.exceptions.events.MaximizeParticipantsException;
 import com.japim.exceptions.events.NullableSpeakersInputException;
 import com.japim.models.Event;
 import com.japim.models.User;
@@ -43,11 +46,33 @@ public class EventService {
             event.getCreated_by(),
             event.getConfirmed_by(),
             event.getSpeakers(),
+            event.getParticipants(),
             event.getCreated_at(),
             event.getUpdated_at(),
             event.getDeleted_at()
         );
     }
+
+
+    private EventParticipantDTO parseEventParticipant(Event event){
+        return new EventParticipantDTO(
+            event.getId(),
+            event.getName(),
+            event.getShort_description(),
+            event.getDescription(),
+            event.getPath_img(),
+            event.getIs_payment(),
+            event.getValue() > 0 ? (double) event.getValue() / 100 : 0,
+            event.getMax_participants(),
+            event.getDate_start(),
+            event.getHour_start(),
+            event.getDate_end(),
+            event.getHour_end(),
+            event.getWorkload(),
+            event.getSpeakers()
+        );
+
+    } 
 
     public EventService(EventRepository eventRepo, UserRepository userRepo){
         this.userRepo = userRepo;   
@@ -154,6 +179,47 @@ public class EventService {
         eventRepo.delete(event);
 
         return parse(event);
+    }
+
+    @Transactional 
+    public EventParticipantDTO subscribeParticipant(Long event_id, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+
+        Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
+
+        if(event.getIs_payment()){
+            throw new FunctionalityIsCommingException("Funcionalidade de Pagamento em evolução");
+        }
+
+        if(event.getParticipants().size() >= event.getMax_participants()){
+            throw new MaximizeParticipantsException();
+        }
+
+        if(eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId())){
+            return parseEventParticipant(event);
+        }
+
+        event.addParticipant(user);
+        eventRepo.save(event);
+
+        return parseEventParticipant(event);
+    }
+
+    @Transactional 
+    public EventParticipantDTO unsubscribeParticipant(Long event_id, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();  
+
+        Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
+        
+        if(eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId())){
+            eventRepo.removeParticipantInEvent(event.getId(), user.getId());
+            eventRepo.save(event);
+        }
+        
+        return parseEventParticipant(event);
+    
     }
     
 }

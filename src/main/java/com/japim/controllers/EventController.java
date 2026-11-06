@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import com.japim.dtos.events.EventDTO;
 import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
+import com.japim.dtos.events.EventParticipantDTO;
 import com.japim.services.EventService;
 
 
@@ -56,6 +57,19 @@ public class EventController {
     @PreAuthorize("hasAuthority('events-delete')") 
     public EventDTO deleteEvent(@Argument long id){
         return eventService.delete(id);
+    }
+
+
+    @PreAuthorize ("hasAuthority('events-subscribe-participant')")
+    @MutationMapping
+    public EventParticipantDTO subscribeParticipant(@Argument Long event_id, Authentication auth){
+        return eventService.subscribeParticipant(event_id, auth);  
+    }
+
+    @PreAuthorize ("hasAuthority('events-unsubscribe-participant')")
+    @MutationMapping
+    public EventParticipantDTO unsubscribeParticipant(@Argument Long event_id, Authentication auth){
+        return eventService.unsubscribeParticipant(event_id, auth);
     }
 
 }

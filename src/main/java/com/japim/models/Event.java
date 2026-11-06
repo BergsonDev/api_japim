@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.annotation.PreDestroy;
@@ -55,6 +56,15 @@ public class Event {
         inverseJoinColumns = @JoinColumn(name = "speaker_id")
     )
     private List<User> speakers;
+
+    @ManyToMany (fetch=FetchType.LAZY)
+    @JoinTable(
+        name = "event_participants",
+        joinColumns = @JoinColumn(name = "event_id"),
+        inverseJoinColumns = @JoinColumn(name = "participant_id")
+    )
+    @SQLJoinTableRestriction("deleted_at IS NULL")
+    private List<User> participants;
 
     @OneToOne(fetch=FetchType.LAZY)
     private User created_by;
@@ -213,6 +223,30 @@ public class Event {
 
     public void setSpeakers(List<User> speakers) {
         this.speakers = speakers;
+    }
+
+    public List<User> getParticipants() {
+        return participants;
+    }
+
+    public void addParticipant(User participant) {
+        this.participants.add(participant);
+    }
+
+    public void addParticipants(List<User> participants) {
+        this.participants.addAll(participants);
+    }
+
+    public void removeParticipants(List<User> participants) {
+        this.participants.removeAll(participants);
+    }
+
+    public void removeParticipant(User participant) {
+        this.participants.remove(participant);
+    }
+
+    public void setParticipants(List<User> participants) {
+        this.participants = participants;
     }
 
     public LocalDateTime getCreated_at() {

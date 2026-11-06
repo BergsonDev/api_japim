@@ -16,10 +16,30 @@ type Event{
     created_by: User!
     confirmed_by: User
     speakers: [User]!
+    participants: [User]
     created_at: LocalDateTime!
     updated_at: LocalDateTime
     deleted_at: LocalDateTime
 }
+
+type EventParticipant{
+    id: ID!
+    name: String!
+    short_description: String!
+    description: String!
+    path_img: String
+    is_payment: Boolean!
+    value: Float!
+    max_participants: Int!
+    date_start: Date!
+    hour_start: LocalTime!
+    date_end: Date!
+    hour_end: LocalTime!
+    workload: Int!
+    speakers: [User]!
+}
+
+
 
 input EventInputCreate{
     name: String!
@@ -63,4 +83,6 @@ extend type Mutation{
     createEvent(input : EventInputCreate) : Event
     updateEvent(input : EventInputUpdate) : Event
     deleteEvent(id : ID!) : Event
+    subscribeParticipant(event_id: ID!) : EventParticipant!
+    unsubscribeParticipant(event_id: ID!) : EventParticipant!
 }
