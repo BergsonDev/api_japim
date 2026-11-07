@@ -17,9 +17,12 @@ import com.japim.exceptions.defaults.EntityDontFindException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
 import com.japim.exceptions.events.MaximizeParticipantsException;
 import com.japim.exceptions.events.NullableSpeakersInputException;
+import com.japim.exceptions.events.DontPermissionApprovedEventException;
+
 import com.japim.models.Event;
 import com.japim.models.User;
 import com.japim.repositories.EventRepository;
+import com.japim.repositories.StatusEventRepository;
 import com.japim.repositories.UserRepository;
 import com.japim.security.AuthSecurity;
 
@@ -27,6 +30,7 @@ import com.japim.security.AuthSecurity;
 public class EventService {
     private final EventRepository eventRepo;
     private final UserRepository userRepo;
+    private final StatusEventRepository statusRep;
 
     private EventDTO parse(Event event){
         return new EventDTO(
@@ -45,6 +49,7 @@ public class EventService {
             event.getHour_end(),
             event.getWorkload(),
             event.getCreated_by(),
+            event.getStatusEvent(),
             event.getConfirmed_by(),
             event.getSpeakers(),
             event.getParticipants(),
@@ -98,9 +103,10 @@ public class EventService {
         );
     }
 
-    public EventService(EventRepository eventRepo, UserRepository userRepo){
+    public EventService(EventRepository eventRepo, UserRepository userRepo, StatusEventRepository statusRepo){
         this.userRepo = userRepo;   
         this.eventRepo = eventRepo;
+        this.statusRep = statusRepo;
     }
 
     @Transactional(readOnly = true)
@@ -151,6 +157,9 @@ public class EventService {
 
         if(is_confirmed){
             event.setConfirmed_by(authSecurity.getUserEntity());
+            event.setStatusEvent(statusRep.findByInitialism("APR").orElseThrow(()->new EntityDontFindException(null, "status events")));
+        }else{
+            event.setStatusEvent(statusRep.findByInitialism("CRI").orElseThrow(()->new EntityDontFindException(null, "status events")));
         }
 
         eventRepo.save(event);
@@ -276,17 +285,27 @@ public class EventService {
         User user = authSecurity.getUserEntity();  
 
         Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
-        System.out.println("Event ID: " + event.getId() + ", User ID: " + user.getId());
-        System.out.println("Exists: " + eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId()));
+
         if(eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId())){
-            System.out.println("dentro do if");
             eventRepo.removeVolunteerInEvent(event.getId(), user.getId());
             eventRepo.save(event);
         }
-        System.out.println("teste depois do if");
         
         return parseEventVolunteer(event);
     }
 
+    @Transactional
+    public EventDTO confirmedEvent(Long id, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+
+
+
+        Event event = eventRepo.findById(id).orElseThrow(() -> new EntityDontFindException(id, "events"));
+        event.setStatusEvent(statusRep.findByInitialism("APR").orElseThrow(()->new EntityDontFindException(null, "status events")));
+        event.setConfirmed_by(user);
+        eventRepo.save(event);
+        return parse(event);
+    }
 
 }

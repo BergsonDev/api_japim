@@ -1,0 +1,9 @@
+type StatusEvent{
+    id: ID!
+    name: String!
+    initialism: String!
+    description: String!
+    created_at: LocalDateTime!
+    updated_at: LocalDateTime
+    deleted_at: LocalDateTime 
+}

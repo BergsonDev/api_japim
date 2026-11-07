@@ -2,6 +2,7 @@ package com.japim.models;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
@@ -76,6 +77,10 @@ public  class Role {
     public void addPermission(Permission permission){
         this.permissions.add(permission);
         permission.getRoles().add(this);
+    }
+
+    public void addPermissions(List<Permission> permissions){
+        this.permissions.addAll(permissions);
     }
 
     public void removePermission(Permission permission){

@@ -41,5 +41,15 @@ public class UserBasicSeeder implements InterfaceSeeder{
         userAdmin.setRole(roleRepo.findByInitialism("ADMIN").orElseThrow(()->new EntityDontFindException(null, "roles")));
         userRepo.save(userAdmin);
 
+        User userTeste = new User();
+
+        userTeste.setName("teste");
+        userTeste.setEmail("teste@japim.com");
+        userTeste.setCpf("1");
+        userTeste.setIs_active(true);
+        userTeste.setPassword(encoder.encode("teste"));
+        userTeste.setRole(roleRepo.findByInitialism("COORD").orElseThrow(()->new EntityDontFindException(null, "roles")));
+        userRepo.save(userTeste);
+
     }
 }

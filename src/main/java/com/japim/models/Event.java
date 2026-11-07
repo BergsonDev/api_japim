@@ -82,6 +82,9 @@ public class Event {
     @OneToOne(fetch=FetchType.LAZY)
     private User confirmed_by;
 
+    @OneToOne(fetch=FetchType.LAZY)
+    private StatusEvent statusEvent;
+    
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
     private LocalDateTime deleted_at;
@@ -296,6 +299,7 @@ public class Event {
     }
 
 
+    
     // lifecicle
     @PrePersist
     protected void onCreate(){
@@ -312,4 +316,11 @@ public class Event {
         this.deleted_at = LocalDateTime.now();
     }
 
+    public StatusEvent getStatusEvent() {
+        return statusEvent;
+    }
+
+    public void setStatusEvent(StatusEvent statusEvent){
+        this.statusEvent = statusEvent;
+    }
 }

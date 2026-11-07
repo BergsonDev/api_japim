@@ -85,5 +85,10 @@ public class EventController {
         return eventService.unsubscribeVolunteer(event_id, auth);
     }
 
+    @PreAuthorize ("hasAuthority('events-confirm')")
+    @MutationMapping
+    public EventDTO confirmedEvent(@Argument Long id, Authentication auth){
+        return eventService.confirmedEvent(id, auth);
+    }
 
 }
