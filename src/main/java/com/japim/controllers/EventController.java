@@ -13,6 +13,7 @@ import com.japim.dtos.events.EventDTO;
 import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
 import com.japim.dtos.events.EventParticipantDTO;
+import com.japim.dtos.events.EventVolunteerDTO;
 import com.japim.services.EventService;
 
 
@@ -71,5 +72,18 @@ public class EventController {
     public EventParticipantDTO unsubscribeParticipant(@Argument Long event_id, Authentication auth){
         return eventService.unsubscribeParticipant(event_id, auth);
     }
+
+    @PreAuthorize ("hasAuthority('events-subscribe-volunteer')")
+    @MutationMapping
+    public EventVolunteerDTO subscribeVolunteer(@Argument Long event_id, Authentication auth){
+        return eventService.subscribeVolunteer(event_id, auth);
+    }
+
+    @PreAuthorize ("hasAuthority('events-unsubscribe-volunteer')")
+    @MutationMapping
+    public EventVolunteerDTO unsubscribeVolunteer(@Argument Long event_id, Authentication auth){
+        return eventService.unsubscribeVolunteer(event_id, auth);
+    }
+
 
 }

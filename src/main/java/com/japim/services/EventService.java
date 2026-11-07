@@ -11,6 +11,7 @@ import com.japim.dtos.events.EventDTO;
 import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
 import com.japim.dtos.events.EventParticipantDTO;
+import com.japim.dtos.events.EventVolunteerDTO;
 import com.japim.exceptions.FunctionalityIsCommingException;
 import com.japim.exceptions.defaults.EntityDontFindException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
@@ -47,6 +48,7 @@ public class EventService {
             event.getConfirmed_by(),
             event.getSpeakers(),
             event.getParticipants(),
+            event.getVolunteers(),
             event.getCreated_at(),
             event.getUpdated_at(),
             event.getDeleted_at()
@@ -73,6 +75,28 @@ public class EventService {
         );
 
     } 
+
+
+    private EventVolunteerDTO parseEventVolunteer(Event event){
+        return new EventVolunteerDTO(
+            event.getId(),
+            event.getName(),
+            event.getShort_description(),
+            event.getDescription(),
+            event.getPath_img(),
+            event.getIs_payment(),
+            event.getValue() > 0 ? (double) event.getValue() / 100 : 0,
+            event.getMax_volunteers(),
+            event.getMax_participants(),
+            event.getDate_start().toString(),
+            event.getHour_start().toString(),
+            event.getDate_end().toString(),
+            event.getHour_end().toString(),
+            event.getWorkload(),
+            event.getSpeakers(),
+            event.getVolunteers()
+        );
+    }
 
     public EventService(EventRepository eventRepo, UserRepository userRepo){
         this.userRepo = userRepo;   
@@ -222,4 +246,47 @@ public class EventService {
     
     }
     
+
+
+    @Transactional 
+    public EventVolunteerDTO subscribeVolunteer(Long event_id, Authentication auth){
+
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+
+        Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
+
+        if(event.getVolunteers().size() >= event.getMax_volunteers()){
+            throw new MaximizeParticipantsException();
+        }
+
+        if(eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId())){
+            return parseEventVolunteer(event);
+        }
+
+        event.addVolunteer(user);
+        eventRepo.save(event);
+
+        return parseEventVolunteer(event);
+    }
+
+    @Transactional
+    public EventVolunteerDTO unsubscribeVolunteer(Long event_id, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();  
+
+        Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
+        System.out.println("Event ID: " + event.getId() + ", User ID: " + user.getId());
+        System.out.println("Exists: " + eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId()));
+        if(eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId())){
+            System.out.println("dentro do if");
+            eventRepo.removeVolunteerInEvent(event.getId(), user.getId());
+            eventRepo.save(event);
+        }
+        System.out.println("teste depois do if");
+        
+        return parseEventVolunteer(event);
+    }
+
+
 }

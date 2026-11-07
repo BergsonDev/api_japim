@@ -13,8 +13,17 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Transactional 
     boolean existsByIdAndParticipants_Id(Long eventId, Long userId);
 
-    @Modifying // Informa ao Spring que é uma operação de escrita (DML)
-    @Transactional // Garante a transação da deleção
+    @Modifying
+    @Transactional 
     @Query(value = "UPDATE event_participants SET deleted_at = NOW() WHERE event_id = :event_id AND participant_id = :participant_id", nativeQuery = true)
     void removeParticipantInEvent(@Param("event_id") Long eventId, @Param("participant_id") Long userId);
+
+
+    @Transactional 
+    boolean existsByIdAndVolunteers_Id(Long eventId, Long userId);
+
+    @Modifying
+    @Transactional 
+    @Query(value = "UPDATE event_volunteers SET deleted_at = NOW() WHERE event_id = :event_id AND volunteer_id = :volunteer_id", nativeQuery = true)
+    void removeVolunteerInEvent(@Param("event_id") Long eventId, @Param("volunteer_id") Long userId);
 }

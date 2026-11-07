@@ -66,6 +66,16 @@ public class Event {
     @SQLJoinTableRestriction("deleted_at IS NULL")
     private List<User> participants;
 
+
+    @ManyToMany (fetch=FetchType.LAZY)
+    @JoinTable(
+        name = "event_volunteers",
+        joinColumns = @JoinColumn(name = "event_id"),
+        inverseJoinColumns = @JoinColumn(name = "volunteer_id")
+    )
+    @SQLJoinTableRestriction("deleted_at IS NULL")
+    private List<User> volunteers;
+
     @OneToOne(fetch=FetchType.LAZY)
     private User created_by;
 
@@ -247,6 +257,30 @@ public class Event {
 
     public void setParticipants(List<User> participants) {
         this.participants = participants;
+    }
+
+    public List<User> getVolunteers() {
+        return volunteers;
+    }
+
+    public void addVolunteer(User volunteer) {
+        this.volunteers.add(volunteer);
+    }
+    
+    public void addVolunteers(List<User> volunteers) {
+        this.volunteers.addAll(volunteers);
+    }
+
+    public void removeVolunteers(List<User> volunteers) {
+        this.volunteers.removeAll(volunteers);
+    }
+
+    public void removeVolunteer(User volunteer) {
+        this.volunteers.remove(volunteer);
+    }
+
+    public void setVolunteers(List<User> volunteers) {
+        this.volunteers = volunteers;
     }
 
     public LocalDateTime getCreated_at() {
