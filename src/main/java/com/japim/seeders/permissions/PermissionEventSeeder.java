@@ -41,7 +41,11 @@ public class PermissionEventSeeder implements InterfaceSeeder {
             "events-create", "Permite criar e cadastrar novos eventos",
             "events-update", "Permite editar e atualizar dados de eventos existentes",
             "events-delete", "Permite excluir eventos do sistema",
-            "events-confirm", "Permite confirmar eventos do sistema"
+            "events-confirm", "Permite confirmar eventos do sistema",
+            "events-subscribe-participant", "Permite se inscrever como participante em eventos",
+            "events-unsubscribe-participant", "Permite cancelar a inscrição como participante em eventos",
+            "events-subscribe-volunteer", "Permite se inscrever como voluntário em eventos",
+            "events-unsubscribe-volunteer", "Permite cancelar a inscrição como voluntário em eventos"
         );
 
         List<Permission> permissions = new ArrayList<>();
