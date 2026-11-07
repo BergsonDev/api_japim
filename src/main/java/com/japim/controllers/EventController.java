@@ -12,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import com.japim.dtos.events.EventDTO;
 import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
+import com.japim.dtos.events.EventParticipantDTO;
+import com.japim.dtos.events.EventVolunteerDTO;
 import com.japim.services.EventService;
 
 
@@ -57,5 +59,31 @@ public class EventController {
     public EventDTO deleteEvent(@Argument long id){
         return eventService.delete(id);
     }
+
+
+    @PreAuthorize ("hasAuthority('events-subscribe-participant')")
+    @MutationMapping
+    public EventParticipantDTO subscribeParticipant(@Argument Long event_id, Authentication auth){
+        return eventService.subscribeParticipant(event_id, auth);  
+    }
+
+    @PreAuthorize ("hasAuthority('events-unsubscribe-participant')")
+    @MutationMapping
+    public EventParticipantDTO unsubscribeParticipant(@Argument Long event_id, Authentication auth){
+        return eventService.unsubscribeParticipant(event_id, auth);
+    }
+
+    @PreAuthorize ("hasAuthority('events-subscribe-volunteer')")
+    @MutationMapping
+    public EventVolunteerDTO subscribeVolunteer(@Argument Long event_id, Authentication auth){
+        return eventService.subscribeVolunteer(event_id, auth);
+    }
+
+    @PreAuthorize ("hasAuthority('events-unsubscribe-volunteer')")
+    @MutationMapping
+    public EventVolunteerDTO unsubscribeVolunteer(@Argument Long event_id, Authentication auth){
+        return eventService.unsubscribeVolunteer(event_id, auth);
+    }
+
 
 }

@@ -40,6 +40,7 @@ public class User {
     private String ra;
     private boolean is_active;
     private String path_img;
+
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
     private LocalDateTime deleted_at;

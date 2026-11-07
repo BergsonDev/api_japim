@@ -5,8 +5,10 @@ package com.japim.models;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.annotation.PreDestroy;
@@ -15,11 +17,13 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-
 
 
 @Entity
@@ -44,6 +48,33 @@ public class Event {
     private LocalDate date_end;
     private LocalTime hour_end;
     private int workload;
+
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(
+        name = "event_speakers",
+        joinColumns = @JoinColumn(name = "event_id"),
+        inverseJoinColumns = @JoinColumn(name = "speaker_id")
+    )
+    private List<User> speakers;
+
+    @ManyToMany (fetch=FetchType.LAZY)
+    @JoinTable(
+        name = "event_participants",
+        joinColumns = @JoinColumn(name = "event_id"),
+        inverseJoinColumns = @JoinColumn(name = "participant_id")
+    )
+    @SQLJoinTableRestriction("deleted_at IS NULL")
+    private List<User> participants;
+
+
+    @ManyToMany (fetch=FetchType.LAZY)
+    @JoinTable(
+        name = "event_volunteers",
+        joinColumns = @JoinColumn(name = "event_id"),
+        inverseJoinColumns = @JoinColumn(name = "volunteer_id")
+    )
+    @SQLJoinTableRestriction("deleted_at IS NULL")
+    private List<User> volunteers;
 
     @OneToOne(fetch=FetchType.LAZY)
     private User created_by;
@@ -178,6 +209,78 @@ public class Event {
 
     public void setConfirmed_by(User confirmed_by) {
         this.confirmed_by = confirmed_by;
+    }
+
+    public List<User> getSpeakers() {
+        return speakers;
+    }
+
+    public void addSpeakers(User speaker) {
+        this.speakers.add(speaker);
+    }
+
+    public void addSpeakers(List<User> speakers) {
+        this.speakers.addAll(speakers);
+    }
+
+    public void removeSpeakers(List<User> speakers) {
+        this.speakers.removeAll(speakers);
+    }
+
+    public void removeSpeaker(User speaker) {
+        this.speakers.remove(speaker);
+    }
+
+    public void setSpeakers(List<User> speakers) {
+        this.speakers = speakers;
+    }
+
+    public List<User> getParticipants() {
+        return participants;
+    }
+
+    public void addParticipant(User participant) {
+        this.participants.add(participant);
+    }
+
+    public void addParticipants(List<User> participants) {
+        this.participants.addAll(participants);
+    }
+
+    public void removeParticipants(List<User> participants) {
+        this.participants.removeAll(participants);
+    }
+
+    public void removeParticipant(User participant) {
+        this.participants.remove(participant);
+    }
+
+    public void setParticipants(List<User> participants) {
+        this.participants = participants;
+    }
+
+    public List<User> getVolunteers() {
+        return volunteers;
+    }
+
+    public void addVolunteer(User volunteer) {
+        this.volunteers.add(volunteer);
+    }
+    
+    public void addVolunteers(List<User> volunteers) {
+        this.volunteers.addAll(volunteers);
+    }
+
+    public void removeVolunteers(List<User> volunteers) {
+        this.volunteers.removeAll(volunteers);
+    }
+
+    public void removeVolunteer(User volunteer) {
+        this.volunteers.remove(volunteer);
+    }
+
+    public void setVolunteers(List<User> volunteers) {
+        this.volunteers = volunteers;
     }
 
     public LocalDateTime getCreated_at() {

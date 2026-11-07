@@ -41,10 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         
-        System.out.println("Cabeçalho Authorization recebido: " + authHeader);
 
         jwt = authHeader.substring(7);
-        System.out.println("Teste " + jwt);
         username = jwtService.extractUsername(jwt);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
