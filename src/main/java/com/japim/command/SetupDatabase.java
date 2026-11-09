@@ -36,9 +36,9 @@ public class SetupDatabase implements ApplicationRunner {
 
             System.out.println(">>> [2/3] Executando as seeders...");
             for (InterfaceSeeder seeder : seeders) {
-                System.out.println("------------Executando: " + seeder.getClass().getSimpleName() + "------------");
+                System.out.println("------------Executando: " + seeder.nameSeeder() + "------------");
                 seeder.run(); // Certifique-se de que o método na sua interface se chama executar()
-                System.out.println("------------Concluído: " + seeder.getClass().getSimpleName() + "------------");
+                System.out.println("------------Concluído: " + seeder.nameSeeder() + "------------");
 
             }
 

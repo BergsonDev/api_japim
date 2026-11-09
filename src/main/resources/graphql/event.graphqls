@@ -14,6 +14,7 @@ type Event{
     hour_end: LocalTime!
     workload: Int!
     created_by: User!
+    status_event: StatusEvent!
     confirmed_by: User
     speakers: [User]!
     participants: [User]
@@ -98,11 +99,13 @@ extend type Query{
 }
 
 extend type Mutation{
-    createEvent(input : EventInputCreate) : Event
-    updateEvent(input : EventInputUpdate) : Event
-    deleteEvent(id : ID!) : Event
+    createEvent(input : EventInputCreate) : Event!
+    updateEvent(input : EventInputUpdate) : Event!
+    deleteEvent(id : ID!) : Event!
     subscribeParticipant(event_id: ID!) : EventParticipant!
     unsubscribeParticipant(event_id: ID!) : EventParticipant!
     subscribeVolunteer(event_id: ID!) : EventVolunteer!
     unsubscribeVolunteer(event_id: ID!) : EventVolunteer!
+    confirmedEvent(id: ID!) : Event!
+    confirmedPresenceByVolunteer(id: ID!, participant_id: ID!) : Event!
 }
