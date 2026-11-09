@@ -109,6 +109,33 @@ public class EventService {
         );
     }
 
+
+    private boolean confirmPresenceInEvent(Event event, ZonedDateTime date_now){
+
+        if (date_now.getYear() != event.getDate_start().getYear() || date_now.getYear() != event.getDate_end().getYear()) {
+            throw new TimeDontValueForPresenceException("Anos diferentes do evento enviado");   
+        }
+
+        if(date_now.getMonth().getValue() < event.getDate_start().getMonth().getValue() || date_now.getMonth().getValue() > event.getDate_end().getMonth().getValue()){
+            throw new TimeDontValueForPresenceException("Mês da confirmação de presenção não está no intervalo dos dias do evento");
+        }
+
+        if(date_now.getDayOfMonth() < event.getDate_start().getDayOfMonth() || date_now.getDayOfMonth() > event.getDate_end().getDayOfMonth() ){
+            throw new TimeDontValueForPresenceException("Meses diferentes do evento para checar a presença");   
+        }
+
+        if(date_now.getHour() < event.getHour_start().getHour() || date_now.getHour() > event.getHour_end().getHour()){
+            throw new TimeDontValueForPresenceException("Hora não permitida para fazer a chamada do evento");
+        }
+
+        if((date_now.getHour() == event.getHour_start().getHour() && date_now.getMinute() < event.getHour_start().getMinute()) || (date_now.getHour() == event.getHour_end().getHour() && date_now.getMinute() > event.getHour_end().getMinute())){
+            throw new TimeDontValueForPresenceException("Minutos não permitido para fazer a chamada do evento");
+        }
+
+        return true;
+
+    }
+
     public EventService(EventRepository eventRepo, UserRepository userRepo, StatusEventRepository statusRepo, EventPresenceRepository eventPresenceRepo){
         this.userRepo = userRepo;   
         this.eventRepo = eventRepo;
@@ -326,31 +353,44 @@ public class EventService {
         User participant = userRepo.findById(participant_id).orElseThrow(()-> new EntityDontFindException(null,"users"));
         Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(null,"events"));
 
-        EventPresence eventPresence = eventPresenceRepo.findByDatePresence(date_now.toLocalDateTime()).orElse(null);
+        EventPresence eventPresence = eventPresenceRepo.findByDatePresence(date_now.toLocalDateTime().toLocalDate()).orElse(null);
 
         if(eventPresence != null){
             throw new PresenceConfirmatedInEventException();
         }
 
-        if (date_now.getYear() != event.getDate_start().getYear() || date_now.getYear() != event.getDate_end().getYear()) {
-            throw new TimeDontValueForPresenceException("Anos diferentes do evento enviado");   
+        if(!this.confirmPresenceInEvent(event, date_now)) return null;
+
+        eventPresence = new EventPresence();
+        eventPresence.setConfirmed_by(user);
+        eventPresence.setEvent(event);
+        eventPresence.setParticipant(participant);
+        eventPresence.setDate_presence(date_now.toLocalDateTime());
+
+        eventPresenceRepo.save(eventPresence);
+        return parse(event);
+    }
+
+    @Transactional 
+    public EventDTO confirmedPresenceByCoordinator(Long id, Long volunteer_id, Authentication auth){
+        ZonedDateTime date_now = ZonedDateTime.now(ZoneId.of("America/Manaus"));
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+
+        if (!eventRepo.existsByIdAndVolunteers_Id(id, volunteer_id)) {
+            throw new DontFindUserInEventException();
         }
 
-        if(date_now.getDayOfMonth() < event.getDate_start().getDayOfMonth() || date_now.getDayOfMonth() > event.getDate_end().getDayOfMonth() ){
-            throw new TimeDontValueForPresenceException("Meses diferentes do evento para checar a presença");   
+        User participant = userRepo.findById(volunteer_id).orElseThrow(()-> new EntityDontFindException(null,"users"));
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(null,"events"));
+
+        EventPresence eventPresence = eventPresenceRepo.findByDatePresence(date_now.toLocalDateTime().toLocalDate()).orElse(null);
+
+        if(eventPresence != null){
+            throw new PresenceConfirmatedInEventException();
         }
 
-        if(date_now.getDayOfWeek().getValue() < event.getDate_start().getDayOfWeek().getValue() || date_now.getDayOfWeek().getValue() > event.getDate_end().getDayOfWeek().getValue()){
-            throw new TimeDontValueForPresenceException("Dia não se encontra no na data do evento");   
-        }
-
-        if(date_now.getHour() < event.getHour_start().getHour() || date_now.getHour() > event.getHour_end().getHour()){
-            throw new TimeDontValueForPresenceException("Hora não permitida para fazer a chamada do evento");
-        }
-
-        if(date_now.getMinute() < event.getHour_start().getMinute() || date_now.getMinute() > event.getHour_end().getMinute()){
-            throw new TimeDontValueForPresenceException("Minutos não permitido para fazer a chamada do evento");
-        }
+        if(!this.confirmPresenceInEvent(event, date_now)) return null;
 
         eventPresence = new EventPresence();
         eventPresence.setConfirmed_by(user);
