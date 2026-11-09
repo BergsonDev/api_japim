@@ -91,4 +91,12 @@ public class EventController {
         return eventService.confirmedEvent(id, auth);
     }
 
+
+    @PreAuthorize ("hasAuthority('events-confirm-presence')")
+    @MutationMapping
+    public EventDTO confirmedPresenceByVolunteer(@Argument Long id, @Argument Long participant_id, Authentication auth){
+        return eventService.confirmedPresenceByVolunteer(id, participant_id, auth);
+
+    }
+
 }
