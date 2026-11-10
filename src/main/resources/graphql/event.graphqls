@@ -108,4 +108,5 @@ extend type Mutation{
     unsubscribeVolunteer(event_id: ID!) : EventVolunteer!
     confirmedEvent(id: ID!) : Event!
     confirmedPresenceByVolunteer(id: ID!, participant_id: ID!) : Event!
+    confirmedPresenceByCoordinator(id: ID!, volunteer_id: ID!) : Event!
 }
