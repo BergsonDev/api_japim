@@ -33,7 +33,8 @@ public class StatusEventBasicSeeder implements InterfaceSeeder{
             "Criado","CRI",
             "Aprovado","APR",
             "Cancelado","CAN",
-            "Encerrado","ENC"
+            "Encerrado","ENC",
+            "Em Andamento","EAM"
         );
 
         List<StatusEvent> list_status_events = new ArrayList<StatusEvent>();

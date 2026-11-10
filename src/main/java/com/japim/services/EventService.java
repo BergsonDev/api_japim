@@ -1,6 +1,7 @@
 package com.japim.services;
 
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -18,7 +19,9 @@ import com.japim.exceptions.FunctionalityIsCommingException;
 import com.japim.exceptions.defaults.EntityDontFindException;
 import com.japim.exceptions.eventPresence.PresenceConfirmatedInEventException;
 import com.japim.exceptions.eventPresence.TimeDontValueForPresenceException;
+import com.japim.exceptions.events.DontDeleteEventException;
 import com.japim.exceptions.events.DontFindUserInEventException;
+import com.japim.exceptions.events.DontUpdateEventException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
 import com.japim.exceptions.events.MaximizeParticipantsException;
 import com.japim.exceptions.events.NullableSpeakersInputException;
@@ -37,6 +40,10 @@ public class EventService {
     private final UserRepository userRepo;
     private final StatusEventRepository statusRep;
     private final EventPresenceRepository eventPresenceRepo;
+
+    private final String IN_PROGRESS = "EAM";
+    private final String CANCELED = "ENC";
+    private final String CREATED = "CRI";
 
     private EventDTO parse(Event event){
         return new EventDTO(
@@ -136,6 +143,30 @@ public class EventService {
 
     }
 
+    private boolean permissionForModifyEvent(Event event, ZonedDateTime date_now){
+
+        if(event.getStatusEvent().getInitialism() != CREATED) return false;
+
+        if(date_now.getMonth().getValue() >= event.getDate_start().getMonth().getValue()){
+            return false;
+        }
+
+        if(date_now.getDayOfMonth() >= event.getDate_start().getDayOfMonth()){
+            return false;   
+        }
+
+        if(date_now.getHour() >= event.getHour_start().getHour()){
+            return false;
+        }
+
+        if((date_now.getHour() == event.getHour_start().getHour() && date_now.getMinute() >= event.getHour_start().getMinute())){
+            return false;
+        }
+
+        return true;
+
+    }
+
     public EventService(EventRepository eventRepo, UserRepository userRepo, StatusEventRepository statusRepo, EventPresenceRepository eventPresenceRepo){
         this.userRepo = userRepo;   
         this.eventRepo = eventRepo;
@@ -204,7 +235,6 @@ public class EventService {
 
     @Transactional
     public EventDTO update(EventInputUpdateDTO eventInput){
-
         if (eventInput.is_payment() && eventInput.value() <= 0) {
             throw new IsPaymentDontValueException();
         }
@@ -220,6 +250,11 @@ public class EventService {
         }
 
         Event event = eventRepo.findById(eventInput.id()).orElseThrow(() -> new EntityDontFindException(eventInput.id(), "events"));
+
+        if(!this.permissionForModifyEvent(null, ZonedDateTime.now(ZoneId.of("America/Manaus")))){
+            throw new DontUpdateEventException(null);
+        }
+
         event.setName(eventInput.name());
         event.setShort_description(eventInput.short_description());
         event.setDescription(eventInput.short_description());
@@ -241,8 +276,15 @@ public class EventService {
 
     @Transactional 
     public EventDTO delete(Long id){
-        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(id, "events"));
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(id, "events")); 
+        
+        if(permissionForModifyEvent(event, ZonedDateTime.now(ZoneId.of("America/Manaus")))){
+            throw new DontDeleteEventException(null);
+        }
 
+        if(eventPresenceRepo.existsByEvent_Id(event.getId())){
+            throw new DontDeleteEventException("Evento já tem a presenças registrados, não pode ser deletado");   
+        }
         eventRepo.delete(event);
 
         return parse(event);
