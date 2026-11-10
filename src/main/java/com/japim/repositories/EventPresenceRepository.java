@@ -1,7 +1,6 @@
 package com.japim.repositories;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,5 +18,9 @@ public interface EventPresenceRepository extends JpaRepository<EventPresence, Lo
             WHERE DATE(date_presence) = :date_presence
         """, nativeQuery = true)
     Optional<EventPresence> findByDatePresence(@Param("date_presence") LocalDate date_presence);
+
+    Optional<EventPresence> findByParticipant_Id(Long participant_id);
+
+    boolean existsByParticipant_Id(Long participant_id);
 
 }

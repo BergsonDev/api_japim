@@ -280,6 +280,10 @@ public class EventService {
 
         Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
         
+        if(eventPresenceRepo.existsByParticipant_Id(user.getId())){
+            throw new PresenceConfirmatedInEventException();
+        }
+
         if(eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId())){
             eventRepo.removeParticipantInEvent(event.getId(), user.getId());
             eventRepo.save(event);
@@ -319,6 +323,9 @@ public class EventService {
         User user = authSecurity.getUserEntity();  
 
         Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
+        if(eventPresenceRepo.existsByParticipant_Id(user.getId())){
+            throw new PresenceConfirmatedInEventException();
+        }
 
         if(eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId())){
             eventRepo.removeVolunteerInEvent(event.getId(), user.getId());
