@@ -35,17 +35,19 @@ public class PermissionEventSeeder implements InterfaceSeeder {
 
         Role role = roleRepo.findByInitialism("ADMIN").orElseThrow(() -> new RuntimeException("Role ADMIN não encontrada"));
         
-        Map<String, String> permissoesEvents = Map.of(
-            "events-view", "Permite visualizar a lista de eventos",
-            "events-read", "Permite visualizar os detalhes de um evento específico",
-            "events-create", "Permite criar e cadastrar novos eventos",
-            "events-update", "Permite editar e atualizar dados de eventos existentes",
-            "events-delete", "Permite excluir eventos do sistema",
-            "events-confirm", "Permite confirmar eventos do sistema",
-            "events-subscribe-participant", "Permite se inscrever como participante em eventos",
-            "events-unsubscribe-participant", "Permite cancelar a inscrição como participante em eventos",
-            "events-subscribe-volunteer", "Permite se inscrever como voluntário em eventos",
-            "events-unsubscribe-volunteer", "Permite cancelar a inscrição como voluntário em eventos"
+        Map<String, String> permissoesEvents = Map.ofEntries(
+            Map.entry("events-view", "Permite visualizar a lista de eventos"),
+            Map.entry("events-read", "Permite visualizar os detalhes de um evento específico"),
+            Map.entry("events-create", "Permite criar e cadastrar novos eventos"),
+            Map.entry("events-update", "Permite editar e atualizar dados de eventos existentes"),
+            Map.entry("events-delete", "Permite excluir eventos do sistema"),
+            Map.entry("events-confirm", "Permite confirmar eventos do sistema"),
+            Map.entry("events-subscribe-participant", "Permite se inscrever como participante em eventos"),
+            Map.entry("events-unsubscribe-participant", "Permite cancelar a inscrição como participante em eventos"),
+            Map.entry("events-subscribe-volunteer", "Permite se inscrever como voluntário em eventos"),
+            Map.entry("events-unsubscribe-volunteer", "Permite cancelar a inscrição como voluntário em eventos"),
+            Map.entry("events-confirm-presence", "Permite confirmar as presenças dos participantes em eventos"),
+            Map.entry("events-confirm-presence-volunteers", "Permite confirmar as presenças dos voluntários em eventos")
         );
 
         List<Permission> permissions = new ArrayList<>();
