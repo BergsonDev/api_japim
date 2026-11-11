@@ -19,7 +19,7 @@ type Event{
     speakers: [User]!
     participants: [User]
     volunteers: [User]
-    created_at: LocalDateTime!
+    created_at: LocalDateTime
     updated_at: LocalDateTime
     deleted_at: LocalDateTime
 }

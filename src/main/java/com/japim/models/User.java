@@ -2,6 +2,8 @@ package com.japim.models;
 
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -13,6 +15,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -45,6 +49,31 @@ public class User {
     private LocalDateTime updated_at;
     private LocalDateTime deleted_at;
 
+
+
+    @ManyToMany(fetch=FetchType.EAGER)
+    @JoinTable(
+        name="event_participants",
+        joinColumns=@JoinColumn(name = "participant_id"),
+        inverseJoinColumns=@JoinColumn(name = "event_id")
+    )
+    private List<Event> events_participant = new ArrayList<>();
+
+    @ManyToMany(fetch=FetchType.EAGER)
+    @JoinTable(
+        name="event_volunteers",
+        joinColumns=@JoinColumn(name = "volunteer_id"),
+        inverseJoinColumns=@JoinColumn(name = "event_id")
+    )
+    private List<Event> events_volunteer = new ArrayList<>();
+
+    @ManyToMany(fetch=FetchType.EAGER)
+    @JoinTable(
+        name="event_speakers",
+        joinColumns=@JoinColumn(name = "speaker_id"),
+        inverseJoinColumns=@JoinColumn(name = "event_id")
+    )
+    private List<Event> events_speaker = new ArrayList<Event>();
 
 
     public long getId() {
@@ -132,6 +161,18 @@ public class User {
         return deleted_at;
     }
 
+
+    public List<Event> getEvents_participant(){
+        return events_participant;
+    }
+
+    public List<Event> getEvents_speaker(){
+        return events_speaker;
+    }
+
+    public List<Event> getEvents_volunteer(){
+        return events_volunteer;
+    }
 
     // lifecicle
     @PrePersist
