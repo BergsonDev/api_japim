@@ -109,4 +109,6 @@ extend type Mutation{
     confirmedEvent(id: ID!) : Event!
     confirmedPresenceByVolunteer(id: ID!, participant_id: ID!) : Event!
     confirmedPresenceByCoordinator(id: ID!, volunteer_id: ID!) : Event!
+    finishEvent(id: ID!) : Event!
+    canceledEvent(id: ID!) : Event!
 }

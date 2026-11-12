@@ -67,12 +67,24 @@ public class StatusEvent {
     public void setInitialism(String initialism) {
         this.initialism = initialism;
     }
-
+    
     public void onCreate() {
         this.created_at = LocalDateTime.now();   
     }
 
     public void onUpdate(){
         this.updated_at = LocalDateTime.now();
+    }
+
+    public LocalDateTime getCreated_at() {
+        return created_at;
+    }
+
+    public LocalDateTime getUpdated_at() {
+        return updated_at;
+    }
+
+    public LocalDateTime getDeleted_at() {
+        return deleted_at;
     }
 }

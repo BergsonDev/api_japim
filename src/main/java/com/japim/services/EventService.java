@@ -1,7 +1,6 @@
 package com.japim.services;
 
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -22,6 +21,7 @@ import com.japim.exceptions.eventPresence.TimeDontValueForPresenceException;
 import com.japim.exceptions.events.DontDeleteEventException;
 import com.japim.exceptions.events.DontFindUserInEventException;
 import com.japim.exceptions.events.DontUpdateEventException;
+import com.japim.exceptions.events.EventDontModifyStatusException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
 import com.japim.exceptions.events.MaximizeParticipantsException;
 import com.japim.exceptions.events.NullableSpeakersInputException;
@@ -42,9 +42,11 @@ public class EventService {
     private final EventPresenceRepository eventPresenceRepo;
 
     private final String IN_PROGRESS = "EAM";
-    private final String CANCELED = "ENC";
+    private final String CANCELED = "CAN";
+    private final String CLOSED = "ENC";
+    private final String APROVATED = "APR";
     private final String CREATED = "CRI";
-
+    private final int DAY_DONT_PERMISSION = 3;
     private EventDTO parse(Event event){
         return new EventDTO(
             event.getId(),
@@ -145,23 +147,11 @@ public class EventService {
 
     private boolean permissionForModifyEvent(Event event, ZonedDateTime date_now){
 
-        if(event.getStatusEvent().getInitialism() != CREATED) return false;
+        if(event.getStatusEvent().getInitialism().compareTo(CREATED) != 0 || event.getStatusEvent().getInitialism().compareTo(APROVATED) != 0) return false;
 
-        if(date_now.getMonth().getValue() >= event.getDate_start().getMonth().getValue()){
-            return false;
-        }
-
-        if(date_now.getDayOfMonth() >= event.getDate_start().getDayOfMonth()){
-            return false;   
-        }
-
-        if(date_now.getHour() >= event.getHour_start().getHour()){
-            return false;
-        }
-
-        if((date_now.getHour() == event.getHour_start().getHour() && date_now.getMinute() >= event.getHour_start().getMinute())){
-            return false;
-        }
+        if(date_now.getMonth().getValue() > event.getDate_start().getMonth().getValue()) return false;
+        
+        if(date_now.getDayOfMonth()  >= event.getDate_start().getDayOfMonth() - DAY_DONT_PERMISSION) return false;   
 
         return true;
 
@@ -251,7 +241,7 @@ public class EventService {
 
         Event event = eventRepo.findById(eventInput.id()).orElseThrow(() -> new EntityDontFindException(eventInput.id(), "events"));
 
-        if(!this.permissionForModifyEvent(null, ZonedDateTime.now(ZoneId.of("America/Manaus")))){
+        if(!permissionForModifyEvent(event, ZonedDateTime.now(ZoneId.of("America/Manaus")))){
             throw new DontUpdateEventException(null);
         }
 
@@ -448,6 +438,35 @@ public class EventService {
         eventPresence.setDate_presence(date_now.toLocalDateTime());
 
         eventPresenceRepo.save(eventPresence);
+        return parse(event);
+    }
+
+
+    public EventDTO finishEvent(Long id, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(null,"events"));
+
+        if (event.getStatusEvent().getInitialism().compareTo(CANCELED) == 0) {
+            throw new EventDontModifyStatusException("Não pode mudar o status para encerrado, pois o evento foi cancelado");
+        }
+
+        event.setConfirmed_by(user);
+        event.setStatusEvent(statusRep.findByInitialism(CLOSED).orElseThrow(()->new EntityDontFindException(null, "events")));
+        eventRepo.save(event);
+        return parse(event);
+    }
+
+    public EventDTO canceledEvent(Long id, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(null,"events"));
+        if (event.getStatusEvent().getInitialism().compareTo(CLOSED) == 0) {
+            throw new EventDontModifyStatusException("Não pode mudar o status para cancelado, pois o evento foi encerrado");
+        }
+        event.setConfirmed_by(user);
+        event.setStatusEvent(statusRep.findByInitialism(CANCELED).orElseThrow(()->new EntityDontFindException(null, "events")));
+        eventRepo.save(event);
         return parse(event);
     }
 
