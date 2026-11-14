@@ -6,10 +6,12 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 import com.japim.dtos.users.UserDTO;
 import com.japim.dtos.users.UserInputDTO;
+import com.japim.dtos.users.UserMeDTO;
 import com.japim.services.UserService;
 @Controller 
 public class UserController {
@@ -55,5 +57,10 @@ public class UserController {
     @PreAuthorize("hasAuthority('users-update')")
     public UserDTO desativeAccount(@Argument long id){
         return this.userService.desative(id);
+    }
+
+    @QueryMapping
+    public UserMeDTO me(Authentication auth){
+        return userService.getAuth(auth);
     }
 }

@@ -1,16 +1,19 @@
 type User {
-    id : String!
-    name : String!
-    email : String!
-    password : String!
-    cpf : String!
-    ra : String!
-    role : Role!
-    is_active : Boolean!
-    path_img : String
-    created_at : LocalDateTime
-    updated_at : LocalDateTime
-    deleted_at : LocalDateTime
+    id: String!
+    name: String!
+    email: String!
+    password: String!
+    cpf: String!
+    ra: String!
+    role: Role!
+    is_active: Boolean!
+    path_img: String
+    events_participant: [Event]
+    events_volunteer: [Event]
+    events_speaker: [Event]
+    created_at: LocalDateTime!
+    updated_at: LocalDateTime
+    deleted_at: LocalDateTime
 }
 
 input UserInputCreate{
@@ -33,8 +36,7 @@ input UserInputUpdate{
 extend type Query {
     users : [User!]
     user(id : ID!) : User!
-    
-
+    me: User!
 }
 
 extend type Mutation{

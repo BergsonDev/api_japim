@@ -104,4 +104,17 @@ public class EventController {
         return eventService.confirmedPresenceByCoordinator(id, volunteer_id, auth);
     }
 
+
+    @PreAuthorize("hasAuthority('events-update')")
+    @MutationMapping 
+    public EventDTO finishEvent(@Argument Long id, Authentication auth){
+        return eventService.finishEvent(id, auth);
+    }
+
+    @PreAuthorize("hasAuthority('events-update')")
+    @MutationMapping 
+    public EventDTO canceledEvent(@Argument Long id, Authentication auth){
+        return eventService.canceledEvent(id,auth);
+    }
+
 }

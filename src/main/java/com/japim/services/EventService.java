@@ -18,7 +18,10 @@ import com.japim.exceptions.FunctionalityIsCommingException;
 import com.japim.exceptions.defaults.EntityDontFindException;
 import com.japim.exceptions.eventPresence.PresenceConfirmatedInEventException;
 import com.japim.exceptions.eventPresence.TimeDontValueForPresenceException;
+import com.japim.exceptions.events.DontDeleteEventException;
 import com.japim.exceptions.events.DontFindUserInEventException;
+import com.japim.exceptions.events.DontUpdateEventException;
+import com.japim.exceptions.events.EventDontModifyStatusException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
 import com.japim.exceptions.events.MaximizeParticipantsException;
 import com.japim.exceptions.events.NullableSpeakersInputException;
@@ -38,6 +41,13 @@ public class EventService {
     private final StatusEventRepository statusRep;
     private final EventPresenceRepository eventPresenceRepo;
 
+    private final String IN_PROGRESS = "EAM";
+    private final String CANCELED = "CAN";
+    private final String CLOSED = "ENC";
+    private final String APROVATED = "APR";
+    private final String CREATED = "CRI";
+    
+    private final int DAY_DONT_PERMISSION = 3;
     private EventDTO parse(Event event){
         return new EventDTO(
             event.getId(),
@@ -136,6 +146,18 @@ public class EventService {
 
     }
 
+    private boolean permissionForModifyEvent(Event event, ZonedDateTime date_now){
+
+        if(event.getStatusEvent().getInitialism().compareTo(CREATED) != 0 || event.getStatusEvent().getInitialism().compareTo(APROVATED) != 0) return false;
+
+        if(date_now.getMonth().getValue() > event.getDate_start().getMonth().getValue()) return false;
+        
+        if(date_now.getDayOfMonth()  >= event.getDate_start().getDayOfMonth() - DAY_DONT_PERMISSION) return false;   
+
+        return true;
+
+    }
+
     public EventService(EventRepository eventRepo, UserRepository userRepo, StatusEventRepository statusRepo, EventPresenceRepository eventPresenceRepo){
         this.userRepo = userRepo;   
         this.eventRepo = eventRepo;
@@ -204,7 +226,6 @@ public class EventService {
 
     @Transactional
     public EventDTO update(EventInputUpdateDTO eventInput){
-
         if (eventInput.is_payment() && eventInput.value() <= 0) {
             throw new IsPaymentDontValueException();
         }
@@ -220,6 +241,11 @@ public class EventService {
         }
 
         Event event = eventRepo.findById(eventInput.id()).orElseThrow(() -> new EntityDontFindException(eventInput.id(), "events"));
+
+        if(!permissionForModifyEvent(event, ZonedDateTime.now(ZoneId.of("America/Manaus")))){
+            throw new DontUpdateEventException(null);
+        }
+
         event.setName(eventInput.name());
         event.setShort_description(eventInput.short_description());
         event.setDescription(eventInput.short_description());
@@ -241,8 +267,15 @@ public class EventService {
 
     @Transactional 
     public EventDTO delete(Long id){
-        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(id, "events"));
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(id, "events")); 
+        
+        if(permissionForModifyEvent(event, ZonedDateTime.now(ZoneId.of("America/Manaus")))){
+            throw new DontDeleteEventException(null);
+        }
 
+        if(eventPresenceRepo.existsByEvent_Id(event.getId())){
+            throw new DontDeleteEventException("Evento já tem a presenças registrados, não pode ser deletado");   
+        }
         eventRepo.delete(event);
 
         return parse(event);
@@ -280,6 +313,10 @@ public class EventService {
 
         Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
         
+        if(eventPresenceRepo.existsByParticipant_Id(user.getId())){
+            throw new PresenceConfirmatedInEventException();
+        }
+
         if(eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId())){
             eventRepo.removeParticipantInEvent(event.getId(), user.getId());
             eventRepo.save(event);
@@ -319,6 +356,9 @@ public class EventService {
         User user = authSecurity.getUserEntity();  
 
         Event event = eventRepo.findById(event_id).orElseThrow(() -> new EntityDontFindException(event_id, "events"));
+        if(eventPresenceRepo.existsByParticipant_Id(user.getId())){
+            throw new PresenceConfirmatedInEventException();
+        }
 
         if(eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId())){
             eventRepo.removeVolunteerInEvent(event.getId(), user.getId());
@@ -399,6 +439,35 @@ public class EventService {
         eventPresence.setDate_presence(date_now.toLocalDateTime());
 
         eventPresenceRepo.save(eventPresence);
+        return parse(event);
+    }
+
+
+    public EventDTO finishEvent(Long id, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(null,"events"));
+
+        if (event.getStatusEvent().getInitialism().compareTo(CANCELED) == 0) {
+            throw new EventDontModifyStatusException("Não pode mudar o status para encerrado, pois o evento foi cancelado");
+        }
+
+        event.setConfirmed_by(user);
+        event.setStatusEvent(statusRep.findByInitialism(CLOSED).orElseThrow(()->new EntityDontFindException(null, "events")));
+        eventRepo.save(event);
+        return parse(event);
+    }
+
+    public EventDTO canceledEvent(Long id, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(null,"events"));
+        if (event.getStatusEvent().getInitialism().compareTo(CLOSED) == 0) {
+            throw new EventDontModifyStatusException("Não pode mudar o status para cancelado, pois o evento foi encerrado");
+        }
+        event.setConfirmed_by(user);
+        event.setStatusEvent(statusRep.findByInitialism(CANCELED).orElseThrow(()->new EntityDontFindException(null, "events")));
+        eventRepo.save(event);
         return parse(event);
     }
 
