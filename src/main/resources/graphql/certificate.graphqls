@@ -1,0 +1,17 @@
+type Certificate{
+    id: ID!
+    event: Event!
+    user: User!
+    date_generated: LocalDateTime! 
+}
+
+
+extend type Query{
+    certificates: [Certificate]!
+    certificate(id: ID!) : Certificate!
+    myCertificates: [Certificate]!
+}
+
+extend type Mutation{
+    getMyCertificate(event_id: ID!): Certificate!
+}

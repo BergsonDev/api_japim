@@ -46,6 +46,7 @@ public class EventService {
     private final String CLOSED = "ENC";
     private final String APROVATED = "APR";
     private final String CREATED = "CRI";
+    
     private final int DAY_DONT_PERMISSION = 3;
     private EventDTO parse(Event event){
         return new EventDTO(

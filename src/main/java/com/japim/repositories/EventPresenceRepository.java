@@ -25,4 +25,6 @@ public interface EventPresenceRepository extends JpaRepository<EventPresence, Lo
 
     boolean existsByEvent_Id(Long event_id);
 
+
+    long countByParticipant_IdAndEvent_Id(Long participant_id,Long event_id);
 }
