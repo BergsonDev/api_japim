@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -18,12 +20,20 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
+    private static final String DEFAULT_SECRET = "M31I8d2YKkEH+2mthqsOW5GeJofkNPwOPKOIf4iopfo=";
+
     private final SecretKey secretKey;
     private final long jwtExpirationMs;
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration}") long expirationMs) {
+            @Value("${jwt.expiration}") long expirationMs,
+            Environment environment) {
+        if (environment.acceptsProfiles(Profiles.of("production")) && DEFAULT_SECRET.equals(secret)) {
+            throw new IllegalStateException(
+                    "JWT_SECRET_KEY deve ser definido com um valor forte e diferente do padrão no profile 'production'.");
+        }
+
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.jwtExpirationMs = expirationMs;
     }
