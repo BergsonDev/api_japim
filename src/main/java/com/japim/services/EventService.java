@@ -599,6 +599,8 @@ public class EventService {
         eventPresence.setDate_presence(date_now.toLocalDateTime());
 
         eventPresenceRepo.save(eventPresence);
+
+        requesterPresenceRepo.deleteById(code);
         return parsePresence(eventPresence);
     }
 
