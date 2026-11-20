@@ -15,6 +15,8 @@ import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
 import com.japim.dtos.events.EventParticipantDTO;
 import com.japim.dtos.events.EventVolunteerDTO;
+import com.japim.dtos.requesterPresences.RequesterPresenceDTO;
+import com.japim.models.RequesterPresence;
 import com.japim.services.EventService;
 
 
@@ -124,4 +126,16 @@ public class EventController {
         return eventService.canceledEvent(id,auth);
     }
 
+
+    @PreAuthorize ("hasAuthority('events-subscribe-participant')")
+    @MutationMapping
+    public RequesterPresenceDTO requesterPresenceCode(@Argument Long event_id, Authentication auth){
+        return eventService.requesterPresenceCode(event_id, auth);
+    }
+
+    @PreAuthorize ("hasAuthority('events-confirm-presence-volunteers')")
+    @MutationMapping
+    public EventPresenceDTO validateRequesterPresenceCode(@Argument String code, Authentication auth){
+        return eventService.validateRequesterPresenceCode(code, auth);
+    }
 }

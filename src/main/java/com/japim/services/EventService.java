@@ -15,6 +15,7 @@ import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
 import com.japim.dtos.events.EventParticipantDTO;
 import com.japim.dtos.events.EventVolunteerDTO;
+import com.japim.dtos.requesterPresences.RequesterPresenceDTO;
 import com.japim.exceptions.FunctionalityIsCommingException;
 import com.japim.exceptions.defaults.EntityDontFindException;
 import com.japim.exceptions.eventPresence.PresenceConfirmatedInEventException;
@@ -26,14 +27,19 @@ import com.japim.exceptions.events.EventDontModifyStatusException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
 import com.japim.exceptions.events.MaximizeParticipantsException;
 import com.japim.exceptions.events.NullableSpeakersInputException;
+import com.japim.exceptions.requesterPresences.CodeRequesterPresenceDontExistsException;
+import com.japim.exceptions.requesterPresences.RequesterPresenceInEventExistsException;
 import com.japim.models.Event;
 import com.japim.models.EventPresence;
+import com.japim.models.RequesterPresence;
 import com.japim.models.User;
 import com.japim.repositories.EventPresenceRepository;
 import com.japim.repositories.EventRepository;
+import com.japim.repositories.RequesterPresenceRepository;
 import com.japim.repositories.StatusEventRepository;
 import com.japim.repositories.UserRepository;
 import com.japim.security.AuthSecurity;
+import com.japim.security.GenerateCode;
 
 @Service
 public class EventService {
@@ -41,6 +47,7 @@ public class EventService {
     private final UserRepository userRepo;
     private final StatusEventRepository statusRep;
     private final EventPresenceRepository eventPresenceRepo;
+    private final RequesterPresenceRepository requesterPresenceRepo;
 
     private final String IN_PROGRESS = "EAM";
     private final String CANCELED = "CAN";
@@ -49,7 +56,7 @@ public class EventService {
     private final String CREATED = "CRI";
     
     private final int DAY_DONT_PERMISSION = 3;
-
+    private final int SIZE_CODE = 10;
     private EventDTO parse(Event event, Authentication auth){
         AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
         User user = authSecurity.getUserEntity();
@@ -155,6 +162,15 @@ public class EventService {
         );
     }
 
+    private RequesterPresenceDTO parseRequesterPresence(RequesterPresence requesterPresence){
+        return new RequesterPresenceDTO(
+            requesterPresence.getCode(),
+            requesterPresence.getDate(),
+            requesterPresence.getUser(),
+            requesterPresence.getEvent()
+        );
+    }
+
     private boolean confirmPresenceInEvent(Event event, ZonedDateTime date_now){
 
         if (date_now.getYear() != event.getDate_start().getYear() || date_now.getYear() != event.getDate_end().getYear()) {
@@ -193,11 +209,18 @@ public class EventService {
 
     }
 
-    public EventService(EventRepository eventRepo, UserRepository userRepo, StatusEventRepository statusRepo, EventPresenceRepository eventPresenceRepo){
+    public EventService(
+        EventRepository eventRepo, 
+        UserRepository userRepo, 
+        StatusEventRepository statusRepo, 
+        EventPresenceRepository eventPresenceRepo,
+        RequesterPresenceRepository requesterPresenceRepo
+    ){
         this.userRepo = userRepo;   
         this.eventRepo = eventRepo;
         this.statusRep = statusRepo;
         this.eventPresenceRepo = eventPresenceRepo;
+        this.requesterPresenceRepo = requesterPresenceRepo;
     }
 
     @Transactional(readOnly = true)
@@ -503,6 +526,7 @@ public class EventService {
         return parse(event,auth);
     }
 
+
     public EventDTO canceledEvent(Long id, Authentication auth){
         AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
         User user = authSecurity.getUserEntity();
@@ -514,6 +538,68 @@ public class EventService {
         event.setStatusEvent(statusRep.findByInitialism(CANCELED).orElseThrow(()->new EntityDontFindException(null, "events")));
         eventRepo.save(event);
         return parse(event,auth);
+    }
+
+    public RequesterPresenceDTO requesterPresenceCode(Long event_id, Authentication auth){
+        ZonedDateTime date_now = ZonedDateTime.now(ZoneId.of("America/Manaus"));
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+        Event event = eventRepo.findById(event_id).orElseThrow(()-> new EntityDontFindException(null,"events"));
+
+        if (!eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId())){
+            throw new DontFindUserInEventException();
+        }
+
+        EventPresence eventPresence = eventPresenceRepo.findByDatePresence(date_now.toLocalDateTime().toLocalDate(),event.getId()).orElse(null);
+        
+        if(eventPresence != null){
+            throw new PresenceConfirmatedInEventException();
+        }
+        
+        RequesterPresence requesterPresence = requesterPresenceRepo.findByUser_IdAndEvent_Id(user.getId(), event.getId()).orElse(null);
+
+        if(requesterPresence != null){
+            throw new RequesterPresenceInEventExistsException();
+        }
+
+        requesterPresence = new RequesterPresence();
+        requesterPresence.setCode(GenerateCode.generateCode(SIZE_CODE));
+        requesterPresence.setUser(user);
+        requesterPresence.setEvent(event);
+
+        requesterPresence = requesterPresenceRepo.save(requesterPresence);
+        System.out.println(requesterPresence.getDate());
+
+        return parseRequesterPresence(requesterPresence);
+    }
+
+    public EventPresenceDTO validateRequesterPresenceCode(String code, Authentication auth){
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+        RequesterPresence requesterPresence = requesterPresenceRepo.findById(code).orElseThrow(()-> new CodeRequesterPresenceDontExistsException());
+
+        ZonedDateTime date_now = ZonedDateTime.now(ZoneId.of("America/Manaus"));
+
+        if (!eventRepo.existsByIdAndParticipants_Id(requesterPresence.getEvent().getId(), requesterPresence.getUser().getId())){
+            throw new DontFindUserInEventException();
+        }
+
+        EventPresence eventPresence = eventPresenceRepo.findByDatePresence(date_now.toLocalDateTime().toLocalDate(), requesterPresence.getEvent().getId()).orElse(null);
+
+        if(eventPresence != null){
+            throw new PresenceConfirmatedInEventException();
+        }
+
+        if(!this.confirmPresenceInEvent(requesterPresence.getEvent(), date_now)) return null;
+
+        eventPresence = new EventPresence();
+        eventPresence.setConfirmed_by(user);
+        eventPresence.setEvent(requesterPresence.getEvent());
+        eventPresence.setParticipant(requesterPresence.getUser());
+        eventPresence.setDate_presence(date_now.toLocalDateTime());
+
+        eventPresenceRepo.save(eventPresence);
+        return parsePresence(eventPresence);
     }
 
 }
