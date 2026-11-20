@@ -4,7 +4,7 @@ type User {
     email: String!
     password: String!
     cpf: String!
-    ra: String!
+    ra: String
     role: Role!
     is_active: Boolean!
     path_img: String

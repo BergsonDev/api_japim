@@ -15,11 +15,13 @@ public interface EventPresenceRepository extends JpaRepository<EventPresence, Lo
     @Query(value = """
             SELECT *
             FROM event_presences
-            WHERE DATE(date_presence) = :date_presence
+            WHERE DATE(date_presence) = :date_presence AND event_id = :event_id
         """, nativeQuery = true)
-    Optional<EventPresence> findByDatePresence(@Param("date_presence") LocalDate date_presence);
+    Optional<EventPresence> findByDatePresence(@Param("date_presence") LocalDate date_presence, @Param("event_id") Long event_id);
 
     Optional<EventPresence> findByParticipant_Id(Long participant_id);
+
+    Optional<EventPresence> findByParticipant_IdAndEvent_Id(Long participant_id,Long event_id );
 
     boolean existsByParticipant_Id(Long participant_id);
 

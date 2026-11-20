@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
+import com.japim.dtos.eventPresence.EventPresenceDTO;
 import com.japim.dtos.events.EventDTO;
 import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
@@ -30,14 +31,14 @@ public class EventController {
 
     @QueryMapping
     @PreAuthorize("hasAuthority('events-read')")
-    public List<EventDTO> events(){
-        return eventService.events();
+    public List<EventDTO> events(Authentication auth){
+        return eventService.events(auth);
     }
 
     @QueryMapping
     @PreAuthorize("hasAuthority('events-read')")
-    public EventDTO event(@Argument Long id){
-        return eventService.event(id);
+    public EventDTO event(@Argument Long id, Authentication auth){
+        return eventService.event(id, auth);
     }
 
     @MutationMapping
@@ -48,16 +49,16 @@ public class EventController {
 
     @MutationMapping
     @PreAuthorize("hasAuthority('events-update')") 
-    public EventDTO updateEvent(@Argument("input") EventInputUpdateDTO eventInput){
-        return eventService.update(eventInput);
+    public EventDTO updateEvent(@Argument("input") EventInputUpdateDTO eventInput,Authentication auth){
+        return eventService.update(eventInput, auth);
     }
 
 
 
     @MutationMapping
     @PreAuthorize("hasAuthority('events-delete')") 
-    public EventDTO deleteEvent(@Argument long id){
-        return eventService.delete(id);
+    public EventDTO deleteEvent(@Argument long id, Authentication auth){
+        return eventService.delete(id,auth);
     }
 
 
@@ -91,11 +92,17 @@ public class EventController {
         return eventService.confirmedEvent(id, auth);
     }
 
-
     @PreAuthorize ("hasAuthority('events-confirm-presence')")
     @MutationMapping
     public EventDTO confirmedPresenceByVolunteer(@Argument Long id, @Argument Long participant_id, Authentication auth){
         return eventService.confirmedPresenceByVolunteer(id, participant_id, auth);
+    }
+
+
+    @PreAuthorize ("hasAuthority('events-subscribe-participant')")
+    @QueryMapping 
+    public EventPresenceDTO participantPresenceDay(@Argument Long id, @Argument Long participant_id, Authentication auth){
+        return eventService.participantPresenceDay(id, participant_id);
     }
 
     @PreAuthorize ("hasAuthority('events-confirm-presence-volunteers')")

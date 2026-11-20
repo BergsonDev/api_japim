@@ -27,7 +27,7 @@ public class UserBasicSeeder implements InterfaceSeeder{
             UserRepository userRepo,
             PasswordEncoder encoder,
             RoleRepository roleRepo,
-            @Value("${SEED_ADMIN_PASSWORD:japimSenhaAdmin@123Bergson!}") String adminPassword,
+            @Value("${SEED_ADMIN_PASSWORD:teste}") String adminPassword,
             @Value("${SEED_TEST_PASSWORD:teste}") String testPassword){
         this.userRepo = userRepo;
         this.encoder = encoder;

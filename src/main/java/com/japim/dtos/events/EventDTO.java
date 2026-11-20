@@ -7,6 +7,6 @@ import java.util.List;
 
 import com.japim.models.StatusEvent;
 import com.japim.models.User;
-public record EventDTO(Long id, String name, String short_description, String description, String path_img, boolean is_payment, double value, int max_participants, int max_volunteers, LocalDate date_start, LocalTime hour_start, LocalDate date_end, LocalTime hour_end, int workload, User created_by, StatusEvent status_event, User confirmed_by, List<User> speakers, List<User> participants, List<User> volunteers, LocalDateTime created_at, LocalDateTime updated_at, LocalDateTime deleted_at) {
+public record EventDTO(Long id, String name, String short_description, String description, String path_img, boolean is_payment, double value, int max_participants, int max_volunteers, LocalDate date_start, LocalTime hour_start, LocalDate date_end, LocalTime hour_end, int workload, User created_by, StatusEvent status_event, User confirmed_by, List<User> speakers, int total_speakers, List<User> participants, int total_participants,List<User> volunteers, int total_volunteers, boolean in_event, LocalDateTime created_at, LocalDateTime updated_at, LocalDateTime deleted_at) {
     
 }
