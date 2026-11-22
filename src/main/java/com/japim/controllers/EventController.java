@@ -1,5 +1,6 @@
 package com.japim.controllers;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -16,7 +17,6 @@ import com.japim.dtos.events.EventInputUpdateDTO;
 import com.japim.dtos.events.EventParticipantDTO;
 import com.japim.dtos.events.EventVolunteerDTO;
 import com.japim.dtos.requesterPresences.RequesterPresenceDTO;
-import com.japim.models.RequesterPresence;
 import com.japim.services.EventService;
 
 
@@ -100,12 +100,30 @@ public class EventController {
         return eventService.confirmedPresenceByVolunteer(id, participant_id, auth);
     }
 
+    @PreAuthorize ("hasAuthority('events-confirm-presence')")
+    @MutationMapping
+    public EventDTO removeConfirmedPresenceByVolunteer(@Argument Long id, @Argument Long participant_id, Authentication auth){
+        return eventService.removeConfirmedPresenceByVolunteer(id, participant_id, auth);
+    }
 
     @PreAuthorize ("hasAuthority('events-subscribe-participant')")
     @QueryMapping 
-    public EventPresenceDTO participantPresenceDay(@Argument Long id, @Argument Long participant_id, Authentication auth){
+    public List<EventPresenceDTO> participantPresenceDay(@Argument Long id, @Argument Long participant_id, Authentication auth){
         return eventService.participantPresenceDay(id, participant_id);
     }
+
+    @PreAuthorize ("hasAuthority('events-subscribe-participant-volunteer')")
+    @QueryMapping 
+    public List<EventPresenceDTO> volunteerPresenceDay(@Argument Long id, @Argument Long volunteer_id, Authentication auth){
+        return eventService.volunteerPresenceDay(id, volunteer_id);
+    }
+    
+    @PreAuthorize ("hasAuthority('events-subscribe-participant')")
+    @QueryMapping 
+    public EventPresenceDTO participantPresenceInDay(@Argument LocalDateTime date_presence, @Argument Long id, @Argument Long participant_id, Authentication auth){
+        return eventService.participantPresenceInDay(id, participant_id, date_presence);
+    }
+
 
     @PreAuthorize ("hasAuthority('events-confirm-presence-volunteers')")
     @MutationMapping
@@ -113,6 +131,11 @@ public class EventController {
         return eventService.confirmedPresenceByCoordinator(id, volunteer_id, auth);
     }
 
+    @PreAuthorize ("hasAuthority('events-confirm-presence-volunteers')")
+    @MutationMapping
+    public EventDTO removeConfirmedPresenceByCoordinator(@Argument Long id, @Argument Long volunteer_id, Authentication auth){
+        return eventService.removeConfirmedPresenceByCoordinator(id, volunteer_id, auth);
+    }
 
     @PreAuthorize("hasAuthority('events-update')")
     @MutationMapping 

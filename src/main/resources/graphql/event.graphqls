@@ -118,8 +118,9 @@ input EventInputUpdate{
 extend type Query{
     events: [Event]
     event(id : ID!):Event! 
-    participantPresenceDay(id: ID!, participant_id: ID!): EventPresence
-    volunteerPresenceDay(id: ID!, volunteer_id: ID!): EventPresence
+    participantPresenceDay(id: ID!, participant_id: ID!): [EventPresence]
+    volunteerPresenceDay(id: ID!, volunteer_id: ID!): [EventPresence]
+    participantPresenceInDay(id: ID!, participant_id: ID!, date_presence: LocalDateTime!) : EventPresence
 }
 
 extend type Mutation{
@@ -132,7 +133,9 @@ extend type Mutation{
     unsubscribeVolunteer(event_id: ID!) : EventVolunteer!
     confirmedEvent(id: ID!) : Event!
     confirmedPresenceByVolunteer(id: ID!, participant_id: ID!) : Event!
+    removeConfirmedPresenceByVolunteer(id: ID!, participant_id: ID!) : Event!
     confirmedPresenceByCoordinator(id: ID!, volunteer_id: ID!) : Event!
+    removeConfirmedPresenceByCoordinator(id: ID!, volunteer_id: ID!) : Event!
     finishEvent(id: ID!) : Event!
     canceledEvent(id: ID!): Event!
     requesterPresenceCode(event_id: ID!): RequesterPresence!

@@ -1,6 +1,5 @@
 package com.japim.models;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.SQLDelete;
@@ -21,7 +20,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name="event_presences")
 @SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE events SET deleted_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE event_presences SET deleted_at = NOW() WHERE id = ?")
 public class EventPresence {
 
     @Id

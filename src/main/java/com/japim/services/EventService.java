@@ -1,6 +1,7 @@
 package com.japim.services;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -19,12 +20,14 @@ import com.japim.dtos.events.EventVolunteerDTO;
 import com.japim.dtos.requesterPresences.RequesterPresenceDTO;
 import com.japim.exceptions.FunctionalityIsCommingException;
 import com.japim.exceptions.defaults.EntityDontFindException;
+import com.japim.exceptions.eventPresence.DontPresenceConfirmatedInEventException;
 import com.japim.exceptions.eventPresence.PresenceConfirmatedInEventException;
 import com.japim.exceptions.eventPresence.TimeDontValueForPresenceException;
 import com.japim.exceptions.events.DontDeleteEventException;
 import com.japim.exceptions.events.DontFindUserInEventException;
 import com.japim.exceptions.events.DontUpdateEventException;
 import com.japim.exceptions.events.EventDontModifyStatusException;
+import com.japim.exceptions.events.FindUserInEventException;
 import com.japim.exceptions.events.IsPaymentDontValueException;
 import com.japim.exceptions.events.MaximizeParticipantsException;
 import com.japim.exceptions.events.NullableSpeakersInputException;
@@ -150,7 +153,7 @@ public class EventService {
     }
 
     private EventPresenceDTO parsePresence(EventPresence eventPresence){
-        return new EventPresenceDTO(
+        return eventPresence == null ? null : new EventPresenceDTO(
             eventPresence.getId(),
             eventPresence.getEvent(),
             eventPresence.getParticipant(), 
@@ -354,9 +357,14 @@ public class EventService {
             throw new MaximizeParticipantsException();
         }
 
+        if(eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId())){
+            throw new FindUserInEventException();    
+        }
+
         if(eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId())){
             return parseEventParticipant(event);
         }
+    
 
         event.addParticipant(user);
         eventRepo.save(event);
@@ -398,6 +406,10 @@ public class EventService {
             throw new MaximizeParticipantsException();
         }
 
+        if(eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId())){
+            throw new FindUserInEventException();    
+        }
+        
         if(eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId())){
             return parseEventVolunteer(event);
         }
@@ -468,15 +480,59 @@ public class EventService {
         eventPresenceRepo.save(eventPresence);
         return parse(event,auth);
     }
+    
+    @Transactional
+    public EventDTO removeConfirmedPresenceByVolunteer(Long id, Long participant_id, Authentication auth){
+        ZonedDateTime date_now = ZonedDateTime.now(ZoneId.of("America/Manaus"));
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
 
-    @Transactional 
-    public EventPresenceDTO participantPresenceDay(Long id, Long participant_id){
         if (!eventRepo.existsByIdAndParticipants_Id(id, participant_id)) {
             throw new DontFindUserInEventException();
         }
 
-        return parsePresence(eventPresenceRepo.findByParticipant_IdAndEvent_Id(participant_id,id).orElse(null));
+        User participant = userRepo.findById(participant_id).orElseThrow(()-> new EntityDontFindException(null,"users"));
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(null,"events"));
 
+        EventPresence eventPresence = eventPresenceRepo.findByDatePresence(date_now.toLocalDateTime().toLocalDate(), event.getId()).orElse(null);
+
+        if(eventPresence == null){
+            throw new DontPresenceConfirmatedInEventException();
+        }
+
+        if(!this.confirmPresenceInEvent(event, date_now)) return null;
+        
+        eventPresenceRepo.delete(eventPresence);
+        return parse(event,auth);
+    }
+
+    @Transactional 
+    public List<EventPresenceDTO> participantPresenceDay(Long id, Long participant_id){
+        if (!eventRepo.existsByIdAndParticipants_Id(id, participant_id)) {
+            throw new DontFindUserInEventException();
+        }
+
+        return eventPresenceRepo.findByParticipant_IdAndEvent_Id(participant_id,id).stream().map(this::parsePresence).toList();
+
+    }
+    
+    @Transactional 
+    public List<EventPresenceDTO> volunteerPresenceDay(Long id, Long volunteer_id){
+        if (!eventRepo.existsByIdAndVolunteers_Id(id, volunteer_id)) {
+            throw new DontFindUserInEventException();
+        }
+
+        return eventPresenceRepo.findByParticipant_IdAndEvent_Id(volunteer_id,id).stream().map(this::parsePresence).toList();
+    }
+
+    @Transactional 
+    public EventPresenceDTO participantPresenceInDay(Long id, Long participant_id, LocalDateTime date_presence){
+        
+        if (!eventRepo.existsByIdAndVolunteers_Id(id, participant_id) && !eventRepo.existsByIdAndParticipants_Id(id, participant_id)) {
+            throw new DontFindUserInEventException();
+        }
+
+        return parsePresence(eventPresenceRepo.findByDatePresenceEvendIdAndParticipantId(date_presence, id, participant_id).orElse(null));
     }
 
     @Transactional 
@@ -507,6 +563,30 @@ public class EventService {
         eventPresence.setDate_presence(date_now.toLocalDateTime());
 
         eventPresenceRepo.save(eventPresence);
+        return parse(event,auth);
+    }
+
+    @Transactional 
+    public EventDTO removeConfirmedPresenceByCoordinator(Long id, Long volunteer_id, Authentication auth){
+        ZonedDateTime date_now = ZonedDateTime.now(ZoneId.of("America/Manaus"));
+        AuthSecurity authSecurity = (AuthSecurity) auth.getPrincipal();
+        User user = authSecurity.getUserEntity();
+
+        if (!eventRepo.existsByIdAndVolunteers_Id(id, volunteer_id)) {
+            throw new DontFindUserInEventException();
+        }
+
+        Event event = eventRepo.findById(id).orElseThrow(()-> new EntityDontFindException(null,"events"));
+
+        EventPresence eventPresence = eventPresenceRepo.findByDatePresence(date_now.toLocalDateTime().toLocalDate(),event.getId()).orElse(null);
+
+        if(eventPresence == null){
+            throw new DontPresenceConfirmatedInEventException();
+        }
+
+        if(!this.confirmPresenceInEvent(event, date_now)) return null;
+
+        eventPresenceRepo.delete(eventPresence);
         return parse(event,auth);
     }
 
