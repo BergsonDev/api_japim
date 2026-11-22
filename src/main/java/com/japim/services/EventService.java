@@ -1,5 +1,6 @@
 package com.japim.services;
 
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -28,7 +29,6 @@ import com.japim.exceptions.events.IsPaymentDontValueException;
 import com.japim.exceptions.events.MaximizeParticipantsException;
 import com.japim.exceptions.events.NullableSpeakersInputException;
 import com.japim.exceptions.requesterPresences.CodeRequesterPresenceDontExistsException;
-import com.japim.exceptions.requesterPresences.RequesterPresenceInEventExistsException;
 import com.japim.models.Event;
 import com.japim.models.EventPresence;
 import com.japim.models.RequesterPresence;
@@ -546,9 +546,11 @@ public class EventService {
         User user = authSecurity.getUserEntity();
         Event event = eventRepo.findById(event_id).orElseThrow(()-> new EntityDontFindException(null,"events"));
 
-        if (!eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId())){
+        if (!eventRepo.existsByIdAndParticipants_Id(event.getId(), user.getId()) && !eventRepo.existsByIdAndVolunteers_Id(event.getId(), user.getId())){
             throw new DontFindUserInEventException();
         }
+        
+        if(!this.confirmPresenceInEvent(event, date_now)) return null;
 
         EventPresence eventPresence = eventPresenceRepo.findByDatePresence(date_now.toLocalDateTime().toLocalDate(),event.getId()).orElse(null);
         
@@ -558,9 +560,11 @@ public class EventService {
         
         RequesterPresence requesterPresence = requesterPresenceRepo.findByUser_IdAndEvent_Id(user.getId(), event.getId()).orElse(null);
 
-        if(requesterPresence != null){
-            throw new RequesterPresenceInEventExistsException();
+        if(requesterPresence != null && (Duration.between(requesterPresence.getDate(), date_now.toLocalDateTime())).toMinutes() < 1){
+            return parseRequesterPresence(requesterPresence);
         }
+
+        if(requesterPresence != null) requesterPresenceRepo.delete(requesterPresence);
 
         requesterPresence = new RequesterPresence();
         requesterPresence.setCode(GenerateCode.generateCode(SIZE_CODE));
@@ -568,7 +572,7 @@ public class EventService {
         requesterPresence.setEvent(event);
 
         requesterPresence = requesterPresenceRepo.save(requesterPresence);
-        System.out.println(requesterPresence.getDate());
+        // System.out.println(requesterPresence.getDate());
 
         return parseRequesterPresence(requesterPresence);
     }
@@ -580,7 +584,7 @@ public class EventService {
 
         ZonedDateTime date_now = ZonedDateTime.now(ZoneId.of("America/Manaus"));
 
-        if (!eventRepo.existsByIdAndParticipants_Id(requesterPresence.getEvent().getId(), requesterPresence.getUser().getId())){
+        if (!eventRepo.existsByIdAndParticipants_Id(requesterPresence.getEvent().getId(), requesterPresence.getUser().getId()) && !eventRepo.existsByIdAndVolunteers_Id(requesterPresence.getEvent().getId(), requesterPresence.getUser().getId())){
             throw new DontFindUserInEventException();
         }
 
@@ -591,6 +595,10 @@ public class EventService {
         }
 
         if(!this.confirmPresenceInEvent(requesterPresence.getEvent(), date_now)) return null;
+
+        if(user.getId() == requesterPresence.getUser().getId()){
+
+        }
 
         eventPresence = new EventPresence();
         eventPresence.setConfirmed_by(user);

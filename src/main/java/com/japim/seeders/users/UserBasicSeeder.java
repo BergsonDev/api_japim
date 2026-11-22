@@ -63,7 +63,7 @@ public class UserBasicSeeder implements InterfaceSeeder{
         userTeste.setCpf("1");
         userTeste.setIs_active(true);
         userTeste.setPassword(encoder.encode(testPassword));
-        userTeste.setRole(roleRepo.findByInitialism("COORD").orElseThrow(()->new EntityDontFindException(null, "roles")));
+        userTeste.setRole(roleRepo.findByInitialism("STU").orElseThrow(()->new EntityDontFindException(null, "roles")));
         userRepo.save(userTeste);
 
     }
