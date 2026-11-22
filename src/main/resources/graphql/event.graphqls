@@ -17,8 +17,12 @@ type Event{
     status_event: StatusEvent!
     confirmed_by: User
     speakers: [User]!
+    total_speakers: Int! 
     participants: [User]
+    total_participants: Int!
     volunteers: [User]
+    total_volunteers: Int!
+    in_event: Boolean!
     created_at: LocalDateTime
     updated_at: LocalDateTime
     deleted_at: LocalDateTime
@@ -59,6 +63,24 @@ type EventVolunteer{
     volunteers: [User]
 }
 
+type EventPresence{
+    id: ID!
+    event:Event!
+    participant: User!
+    confirmed_by: User!
+    date_presence:LocalDateTime!
+    created_at: LocalDateTime
+    updated_at: LocalDateTime
+    deleted_at: LocalDateTime
+}
+
+type RequesterPresence{
+    code: ID!
+    user: User!
+    event:Event!
+    date: LocalDateTime!
+}
+
 
 input EventInputCreate{
     name: String!
@@ -96,6 +118,9 @@ input EventInputUpdate{
 extend type Query{
     events: [Event]
     event(id : ID!):Event! 
+    participantPresenceDay(id: ID!, participant_id: ID!): [EventPresence]
+    volunteerPresenceDay(id: ID!, volunteer_id: ID!): [EventPresence]
+    participantPresenceInDay(id: ID!, participant_id: ID!, date_presence: LocalDateTime!) : EventPresence
 }
 
 extend type Mutation{
@@ -108,7 +133,11 @@ extend type Mutation{
     unsubscribeVolunteer(event_id: ID!) : EventVolunteer!
     confirmedEvent(id: ID!) : Event!
     confirmedPresenceByVolunteer(id: ID!, participant_id: ID!) : Event!
+    removeConfirmedPresenceByVolunteer(id: ID!, participant_id: ID!) : Event!
     confirmedPresenceByCoordinator(id: ID!, volunteer_id: ID!) : Event!
+    removeConfirmedPresenceByCoordinator(id: ID!, volunteer_id: ID!) : Event!
     finishEvent(id: ID!) : Event!
-    canceledEvent(id: ID!) : Event!
+    canceledEvent(id: ID!): Event!
+    requesterPresenceCode(event_id: ID!): RequesterPresence!
+    validateRequesterPresenceCode(code: ID!):EventPresence!
 }

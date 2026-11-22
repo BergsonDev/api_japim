@@ -1,5 +1,6 @@
 package com.japim.controllers;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -9,11 +10,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
+import com.japim.dtos.eventPresence.EventPresenceDTO;
 import com.japim.dtos.events.EventDTO;
 import com.japim.dtos.events.EventInputCreateDTO;
 import com.japim.dtos.events.EventInputUpdateDTO;
 import com.japim.dtos.events.EventParticipantDTO;
 import com.japim.dtos.events.EventVolunteerDTO;
+import com.japim.dtos.requesterPresences.RequesterPresenceDTO;
 import com.japim.services.EventService;
 
 
@@ -30,14 +33,14 @@ public class EventController {
 
     @QueryMapping
     @PreAuthorize("hasAuthority('events-read')")
-    public List<EventDTO> events(){
-        return eventService.events();
+    public List<EventDTO> events(Authentication auth){
+        return eventService.events(auth);
     }
 
     @QueryMapping
     @PreAuthorize("hasAuthority('events-read')")
-    public EventDTO event(@Argument Long id){
-        return eventService.event(id);
+    public EventDTO event(@Argument Long id, Authentication auth){
+        return eventService.event(id, auth);
     }
 
     @MutationMapping
@@ -48,16 +51,16 @@ public class EventController {
 
     @MutationMapping
     @PreAuthorize("hasAuthority('events-update')") 
-    public EventDTO updateEvent(@Argument("input") EventInputUpdateDTO eventInput){
-        return eventService.update(eventInput);
+    public EventDTO updateEvent(@Argument("input") EventInputUpdateDTO eventInput,Authentication auth){
+        return eventService.update(eventInput, auth);
     }
 
 
 
     @MutationMapping
     @PreAuthorize("hasAuthority('events-delete')") 
-    public EventDTO deleteEvent(@Argument long id){
-        return eventService.delete(id);
+    public EventDTO deleteEvent(@Argument long id, Authentication auth){
+        return eventService.delete(id,auth);
     }
 
 
@@ -91,12 +94,36 @@ public class EventController {
         return eventService.confirmedEvent(id, auth);
     }
 
-
     @PreAuthorize ("hasAuthority('events-confirm-presence')")
     @MutationMapping
     public EventDTO confirmedPresenceByVolunteer(@Argument Long id, @Argument Long participant_id, Authentication auth){
         return eventService.confirmedPresenceByVolunteer(id, participant_id, auth);
     }
+
+    @PreAuthorize ("hasAuthority('events-confirm-presence')")
+    @MutationMapping
+    public EventDTO removeConfirmedPresenceByVolunteer(@Argument Long id, @Argument Long participant_id, Authentication auth){
+        return eventService.removeConfirmedPresenceByVolunteer(id, participant_id, auth);
+    }
+
+    @PreAuthorize ("hasAuthority('events-subscribe-participant')")
+    @QueryMapping 
+    public List<EventPresenceDTO> participantPresenceDay(@Argument Long id, @Argument Long participant_id, Authentication auth){
+        return eventService.participantPresenceDay(id, participant_id);
+    }
+
+    @PreAuthorize ("hasAuthority('events-subscribe-participant-volunteer')")
+    @QueryMapping 
+    public List<EventPresenceDTO> volunteerPresenceDay(@Argument Long id, @Argument Long volunteer_id, Authentication auth){
+        return eventService.volunteerPresenceDay(id, volunteer_id);
+    }
+    
+    @PreAuthorize ("hasAuthority('events-subscribe-participant')")
+    @QueryMapping 
+    public EventPresenceDTO participantPresenceInDay(@Argument LocalDateTime date_presence, @Argument Long id, @Argument Long participant_id, Authentication auth){
+        return eventService.participantPresenceInDay(id, participant_id, date_presence);
+    }
+
 
     @PreAuthorize ("hasAuthority('events-confirm-presence-volunteers')")
     @MutationMapping
@@ -104,6 +131,11 @@ public class EventController {
         return eventService.confirmedPresenceByCoordinator(id, volunteer_id, auth);
     }
 
+    @PreAuthorize ("hasAuthority('events-confirm-presence-volunteers')")
+    @MutationMapping
+    public EventDTO removeConfirmedPresenceByCoordinator(@Argument Long id, @Argument Long volunteer_id, Authentication auth){
+        return eventService.removeConfirmedPresenceByCoordinator(id, volunteer_id, auth);
+    }
 
     @PreAuthorize("hasAuthority('events-update')")
     @MutationMapping 
@@ -117,4 +149,16 @@ public class EventController {
         return eventService.canceledEvent(id,auth);
     }
 
+
+    @PreAuthorize ("hasAuthority('events-subscribe-participant')")
+    @MutationMapping
+    public RequesterPresenceDTO requesterPresenceCode(@Argument Long event_id, Authentication auth){
+        return eventService.requesterPresenceCode(event_id, auth);
+    }
+
+    @PreAuthorize ("hasAuthority('events-confirm-presence-volunteers')")
+    @MutationMapping
+    public EventPresenceDTO validateRequesterPresenceCode(@Argument String code, Authentication auth){
+        return eventService.validateRequesterPresenceCode(code, auth);
+    }
 }
