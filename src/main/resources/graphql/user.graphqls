@@ -37,6 +37,7 @@ extend type Query {
     users : [User!]
     user(id : ID!) : User!
     me: User!
+    eventsSubscribe: [Event]!
 }
 
 extend type Mutation{
