@@ -228,7 +228,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public List<EventDTO> events(Authentication auth){
-        return eventRepo.findAll().stream().map(event->parse(event, auth)).toList();
+        return eventRepo.findAllOrderByDesc().stream().map(event->parse(event, auth)).toList();
     }
 
     @Transactional(readOnly = true)

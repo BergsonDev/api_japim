@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
+import com.japim.dtos.events.EventDTO;
 import com.japim.dtos.users.UserDTO;
 import com.japim.dtos.users.UserInputDTO;
 import com.japim.dtos.users.UserMeDTO;
@@ -63,4 +64,11 @@ public class UserController {
     public UserMeDTO me(Authentication auth){
         return userService.getAuth(auth);
     }
+
+
+    @QueryMapping 
+    public List<EventDTO> eventsSubscribe(Authentication auth){
+        return userService.eventsSubscribe(auth);
+    }
+    
 }
